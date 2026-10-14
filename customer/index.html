@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ec">
+  <title>Kapetbahay Cafe | Good coffee, good company</title>
+  <meta name="description" content="Order your Kapetbahay favorites, made with care and served with a little extra warmth.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- QR customers land directly on the menu; no customer account is required. -->
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Kapetbahay home">
+      <span class="brand-mark"><i data-lucide="coffee" aria-hidden="true"></i></span>
+      <span>kapetbahay<span class="brand-dot">.</span><small>COFFEE & COMPANY</small></span>
+    </a>
+    <div class="header-note"><span class="open-dot"></span> Made fresh, just for you</div>
+    <button class="bag-button" id="open-cart" type="button" aria-label="Open your order bag">
+      <i data-lucide="shopping-bag" aria-hidden="true"></i>
+      <span class="bag-label">Your order</span>
+      <span id="cart-count" class="cart-count" aria-live="polite">0</span>
+    </button>
+  </header>
+
+  <main id="top">
+    <!-- Cafe introduction and QR landing-page welcome. -->
+    <section class="welcome-shell" aria-labelledby="welcome-title">
+      <div class="welcome-copy">
+        <span class="eyebrow"><span></span> YOUR LITTLE CORNER OF COMFORT</span>
+        <h1 id="welcome-title">Good coffee.<br><em>Good company.</em></h1>
+        <p>Slow mornings, familiar faces, and something lovely in your cup. Find your favorite and we’ll make it fresh.</p>
+        <a class="menu-link" href="#menu">Find your usual <i data-lucide="arrow-down-right" aria-hidden="true"></i></a>
+        <div class="welcome-stamp"><i data-lucide="heart" aria-hidden="true"></i><span>Made with care<br>in every cup</span></div>
+      </div>
+      <div class="welcome-photo" role="img" aria-label="Freshly poured coffee on a cafe table">
+        <div class="photo-caption"><span>YOUR TABLE, YOUR PACE</span><i data-lucide="sun" aria-hidden="true"></i></div>
+      </div>
+    </section>
+
+    <!-- Categories and product cards are rendered from the catalog in app.js. -->
+    <section class="menu-section" id="menu" aria-labelledby="menu-title">
+      <div class="menu-heading">
+        <div>
+          <span class="eyebrow">A FEW HOUSE FAVORITES</span>
+          <h2 id="menu-title">Made for this moment<span>.</span></h2>
+        </div>
+        <span class="menu-hours"><i data-lucide="clock-3" aria-hidden="true"></i> Serving today, 8am – 8pm</span>
+      </div>
+      <nav class="category-row" id="categories" aria-label="Menu categories">
+        <button class="category-pill active" type="button" data-category="All" aria-pressed="true">Everything <span>06</span></button>
+        <button class="category-pill" type="button" data-category="Coffee" aria-pressed="false">Coffee</button>
+        <button class="category-pill" type="button" data-category="Non-Coffee" aria-pressed="false">Not coffee</button>
+        <button class="category-pill" type="button" data-category="Pastries" aria-pressed="false">Pastries</button>
+        <button class="category-pill" type="button" data-category="Snacks" aria-pressed="false">Little bites</button>
+      </nav>
+      <div class="product-grid" id="product-grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><a class="brand footer-brand" href="#top"><span class="brand-mark"><i data-lucide="coffee" aria-hidden="true"></i></span><span>kapetbahay<span class="brand-dot">.</span><small>COFFEE & COMPANY</small></span></a><span>A good cup is better shared.</span><span>Made with care, always.</span></footer>
+
+  <!-- Shared scrim plus the slide-over bag and checkout form. -->
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" aria-hidden="true">
+    <div class="drawer-heading"><div><span class="eyebrow">SOMETHING GOOD IS COMING</span><h2 id="cart-title">Your order<span>.</span></h2></div><button class="icon-button" type="button" data-close aria-label="Close order bag"><i data-lucide="x"></i></button></div>
+    <div id="cart-items" class="cart-items"></div>
+    <div class="empty-cart" id="empty-cart"><span class="empty-icon"><i data-lucide="coffee"></i></span><h3>A little room for something lovely.</h3><p>Your bag is empty for now.</p><button class="text-action" type="button" data-close>Explore the menu <i data-lucide="arrow-right"></i></button></div>
+    <div class="checkout-area" id="checkout-area" hidden>
+      <div class="bill-line"><span>Subtotal</span><span id="subtotal">₱0.00</span></div>
+      <div class="bill-line"><span>Service tax <small>(8%)</small></span><span id="tax">₱0.00</span></div>
+      <div class="bill-line bill-total"><span>Total</span><span id="total">₱0.00</span></div>
+      <form id="checkout-form" class="checkout-form">
+        <label>Your name<input name="name" autocomplete="name" placeholder="What should we call you?" required maxlength="50"></label>
+        <label>Table or seat number<input name="table" placeholder="e.g. 04" required maxlength="12"></label>
+        <button class="primary-button place-order" type="submit">Place my order <i data-lucide="arrow-up-right"></i></button>
+        <p class="checkout-note"><i data-lucide="heart-handshake"></i> We’ll bring it right to your table.</p>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Product customization modal; drink options are hidden for food items. -->
+  <section class="product-dialog" id="product-dialog" role="dialog" aria-modal="true" aria-labelledby="product-name" aria-hidden="true">
+    <button class="dialog-close icon-button" type="button" data-close-product aria-label="Close item details"><i data-lucide="x"></i></button>
+    <div class="dialog-image" id="dialog-image"></div>
+    <div class="dialog-content">
+      <span class="eyebrow" id="dialog-category"></span>
+      <h2 id="product-name"></h2>
+      <p id="product-description"></p>
+      <form id="customize-form">
+        <fieldset id="temperature-options" class="option-group"><legend>Just how you like it</legend><div class="choice-row"><label class="choice"><input type="radio" name="temperature" value="Hot" checked><span>Hot</span></label><label class="choice"><input type="radio" name="temperature" value="Iced"><span>Iced</span></label></div></fieldset>
+        <fieldset class="option-group drink-option"><legend>Size</legend><div class="choice-row"><label class="choice"><input type="radio" name="size" value="Regular" checked><span>Regular</span></label><label class="choice"><input type="radio" name="size" value="Large"><span>Large <small>+₱35</small></span></label></div></fieldset>
+        <div class="drink-option"><label class="select-label" for="sweetness">Sweetness</label><select id="sweetness" name="sweetness"><option>Regular</option><option>Less sweet</option><option>Half sweet</option><option>No sugar</option></select></div>
+        <label class="milk-choice drink-option"><input type="checkbox" name="oat"><span>Make it oat milk</span><small>+₱25</small></label>
+        <div class="dialog-actions"><div class="quantity-stepper"><button type="button" data-detail-qty="-1" aria-label="Decrease quantity">−</button><output id="detail-quantity">1</output><button type="button" data-detail-qty="1" aria-label="Increase quantity">+</button></div><button class="primary-button" type="submit"><span>Add to order</span><strong id="detail-price">₱0.00</strong></button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Order confirmation shown after the demo checkout is submitted. -->
+  <section class="success-dialog" id="success-dialog" role="dialog" aria-modal="true" aria-labelledby="success-title" aria-hidden="true">
+    <div class="success-art"><span><i data-lucide="check"></i></span><i class="success-sparkle" data-lucide="sparkles"></i></div>
+    <span class="eyebrow">ORDER SENT WITH LOVE</span><h2 id="success-title">We’ve got you<span>.</span></h2>
+    <p>Your order is with our baristas now. Get comfy, <span id="success-name"></span>.</p>
+    <div class="tracking-ticket"><div><span>ORDER NUMBER</span><strong id="order-number"></strong></div><i data-lucide="coffee"></i><div><span>ESTIMATED TIME</span><strong>10–15 min</strong></div></div>
+    <button class="primary-button success-button" id="finish-order" type="button">Back to the menu <i data-lucide="arrow-right"></i></button>
+  </section>
+  <script src="app.js"></script>
+</body>
+</html>

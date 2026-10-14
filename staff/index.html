@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f4ed">
+  <title>Kapetbahay | Staff orders</title>
+  <meta name="description" content="Kapetbahay staff order management dashboard.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Staff-only entry point; this demo form does not authenticate against a server. -->
+  <main id="auth-screen" class="auth-layout">
+    <section class="auth-story" aria-label="Kapetbahay cafe">
+      <a class="brand" href="#"><span class="brand-mark"><i data-lucide="coffee"></i></span><span>kapetbahay<span class="brand-dot">.</span><small>TEAM ROOM</small></span></a>
+      <div class="story-copy"><span class="eyebrow"><span></span> THE GOOD STUFF STARTS HERE</span><h1>Small moments.<br><em>Made together.</em></h1><p>Every cup, every plate, every warm hello. Thanks for being part of what makes this place feel like home.</p></div>
+      <div class="story-bottom"><span>EST. WITH LOVE</span><span>LAGUNA · PHILIPPINES</span><span>01 / 01</span></div>
+    </section>
+    <section class="auth-panel">
+      <div class="auth-mobile-brand"><a class="brand" href="#"><span class="brand-mark"><i data-lucide="coffee"></i></span><span>kapetbahay<span class="brand-dot">.</span><small>TEAM ROOM</small></span></a></div>
+      <div class="auth-form-wrap">
+        <div class="auth-heading"><span class="eyebrow" id="auth-eyebrow">GOOD TO SEE YOU AGAIN</span><h2 id="auth-title">Welcome back<span>.</span></h2><p id="auth-subtitle">Sign in to your crew account to pick up where you left off.</p></div>
+        <div class="auth-tabs" role="tablist" aria-label="Staff account access"><button class="auth-tab active" type="button" data-auth="login" role="tab" aria-selected="true">Sign in</button><button class="auth-tab" type="button" data-auth="register" role="tab" aria-selected="false">Create account</button></div>
+        <form id="auth-form" novalidate>
+          <label class="field-label" for="staff-name" id="name-label" hidden>Your name<input id="staff-name" name="name" autocomplete="name" placeholder="First and last name" maxlength="60"></label>
+          <label class="field-label" for="staff-email">Email address<input id="staff-email" name="email" type="email" autocomplete="username" placeholder="@gmail.com" required></label>
+          <label class="field-label" for="staff-password">Password<input id="staff-password" name="password" type="password" autocomplete="current-password" placeholder="At least 8 characters" minlength="8" required></label>
+          <p class="form-error" id="form-error" role="alert" aria-live="polite"></p>
+          <button class="primary-button auth-submit" type="submit"><span id="submit-label">Sign in</span><i data-lucide="arrow-up-right"></i></button>
+        </form>
+        <p class="auth-footnote"><i data-lucide="lock-keyhole"></i> Staff access only. Ask your shift lead for an invite.</p>
+      </div>
+      <span class="auth-copyright">© 2026 KAPETBAHAY CAFE</span>
+    </section>
+  </main>
+
+  <!-- The demo dashboard becomes visible after the local form passes validation. -->
+  <main id="dashboard" class="dashboard" hidden>
+    <header class="dash-header">
+      <a class="brand" href="#dashboard"><span class="brand-mark"><i data-lucide="coffee"></i></span><span>kapetbahay<span class="brand-dot">.</span><small>ORDER DESK</small></span></a>
+      <div class="dash-context"><span class="service-indicator"><i></i> SERVICE IN PROGRESS</span><span class="date-label" id="today-label"></span></div>
+      <div class="profile-area"><button class="notification-button" id="notification-toggle" type="button" aria-pressed="true" aria-label="Toggle sound notifications"><i data-lucide="bell-ring"></i><span class="notification-dot"></span></button><div class="profile-divider"></div><div class="profile-avatar">M</div><div class="profile-copy"><strong id="profile-name">Mika Santos</strong><span><i></i> On shift</span></div><button class="logout-button" id="logout" type="button" aria-label="Sign out"><i data-lucide="log-out"></i></button></div>
+    </header>
+    <section class="dash-content">
+      <div class="dash-title-row"><div><span class="eyebrow">THE COUNTER IS YOURS</span><h1>Order desk<span>.</span></h1><p>One good order at a time. You’ve got this.</p></div><div class="dash-actions"><label class="shift-select-label" for="shift-status">Shift status<select id="shift-status"><option>On shift</option><option>On break</option></select></label><button class="simulate-button" id="simulate-order" type="button"><i data-lucide="bell-plus"></i> Simulate new order</button></div></div>
+      <div class="summary-strip" id="summary-strip"></div>
+      <div class="board-heading"><h2>Live orders <span id="live-count">0</span></h2><span class="board-updated"><i data-lucide="refresh-cw"></i> Updates just now</span></div>
+      <section class="kanban-board" id="kanban-board" aria-label="Orders by status"></section>
+    </section>
+    <div class="toast" id="toast" role="status" aria-live="polite"><i data-lucide="bell-ring"></i><span id="toast-message">New order received</span></div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
