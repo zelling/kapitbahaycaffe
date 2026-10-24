@@ -1,20 +1,87 @@
 <?php
 declare(strict_types=1);
+
 require_once __DIR__ . '/../includes/auth.php';
 require_role('owner');
-function category_go(string $message): never { $_SESSION['flash'] = $message; redirect('/owner/categories.php'); }
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf()) { http_response_code(400); exit('Invalid request.'); }
-    $action = (string) ($_POST['action'] ?? ''); $id = (int) ($_POST['id'] ?? 0);
-    if (in_array($action, ['archive', 'restore'], true)) { $pdo->prepare('UPDATE categories SET is_archived = :a WHERE id = :id')->execute(['a' => $action === 'archive', 'id' => $id]); category_go($action === 'archive' ? 'Category archived.' : 'Category restored.'); }
-    $name = trim((string) ($_POST['name'] ?? ''));
-    if ($name === '') { $_SESSION['form_error'] = 'Category name is required.'; redirect('/owner/categories.php' . ($id ? '?edit=' . $id : '')); }
-    $q = $pdo->prepare('SELECT id FROM categories WHERE name = :name AND id != :id LIMIT 1'); $q->execute(['name' => $name, 'id' => $id]);
-    if ($q->fetch()) { $_SESSION['form_error'] = 'A category with that name already exists.'; redirect('/owner/categories.php' . ($id ? '?edit=' . $id : '')); }
-    if ($action === 'edit' && $id) { $pdo->prepare('UPDATE categories SET name = :name WHERE id = :id')->execute(['name' => $name, 'id' => $id]); category_go('Category updated.'); }
-    $pdo->prepare('INSERT INTO categories (name) VALUES (:name)')->execute(['name' => $name]); category_go('Category added.');
+
+function category_go(string $message): never
+{
+    $_SESSION['flash'] = $message;
+    redirect('/owner/categories.php');
 }
-$editing = null; if (isset($_GET['edit'])) { $q = $pdo->prepare('SELECT * FROM categories WHERE id = :id'); $q->execute(['id' => (int) $_GET['edit']]); $editing = $q->fetch() ?: null; }
-$archived = isset($_GET['archived']); $rows = $pdo->query('SELECT * FROM categories ' . ($archived ? '' : 'WHERE is_archived = 0 ') . 'ORDER BY name')->fetchAll(); $page_title = 'Categories'; $theme = 'owner'; require __DIR__ . '/../includes/header.php';
+
+// Handle category creation, editing, archiving, and restoration before output.
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf()) {
+        http_response_code(400);
+        exit('Invalid request.');
+    }
+
+    $action = (string) ($_POST['action'] ?? '');
+    $id = (int) ($_POST['id'] ?? 0);
+
+    if (in_array($action, ['archive', 'restore'], true)) {
+        $statement = $pdo->prepare('UPDATE categories SET is_archived = :archived WHERE id = :id');
+        $statement->execute(['archived' => $action === 'archive', 'id' => $id]);
+        category_go($action === 'archive' ? 'Category archived.' : 'Category restored.');
+    }
+
+    $name = trim((string) ($_POST['name'] ?? ''));
+    if ($name === '') {
+        $_SESSION['form_error'] = 'Category name is required.';
+        redirect('/owner/categories.php' . ($id ? '?edit=' . $id : ''));
+    }
+
+    $statement = $pdo->prepare('SELECT id FROM categories WHERE name = :name AND id != :id LIMIT 1');
+    $statement->execute(['name' => $name, 'id' => $id]);
+    if ($statement->fetch()) {
+        $_SESSION['form_error'] = 'A category with that name already exists.';
+        redirect('/owner/categories.php' . ($id ? '?edit=' . $id : ''));
+    }
+
+    if ($action === 'edit' && $id) {
+        $statement = $pdo->prepare('UPDATE categories SET name = :name WHERE id = :id');
+        $statement->execute(['name' => $name, 'id' => $id]);
+        category_go('Category updated.');
+    }
+
+    $statement = $pdo->prepare('INSERT INTO categories (name) VALUES (:name)');
+    $statement->execute(['name' => $name]);
+    category_go('Category added.');
+}
+
+// Load the optional edit record and the requested category list.
+$editing = null;
+if (isset($_GET['edit'])) {
+    $statement = $pdo->prepare('SELECT * FROM categories WHERE id = :id');
+    $statement->execute(['id' => (int) $_GET['edit']]);
+    $editing = $statement->fetch() ?: null;
+}
+
+$archived = isset($_GET['archived']);
+$rows = $pdo->query('SELECT * FROM categories ' . ($archived ? '' : 'WHERE is_archived = 0 ') . 'ORDER BY name')->fetchAll();
+$page_title = 'Categories';
+$theme = 'owner';
+require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-owner-page"><div class="app-page-heading"><div><p class="eyebrow">Owner tools</p><h1>Categories<span>.</span></h1></div><a class="app-toggle-link" href="<?= e(BASE_URL) ?>/owner/categories.php<?= $archived ? '' : '?archived=1' ?>"><?= $archived ? 'Hide archived' : 'Show archived' ?></a></div><?php if (!empty($_SESSION['flash'])): ?><p class="app-message app-message-success"><?= e((string) $_SESSION['flash']); unset($_SESSION['flash']); ?></p><?php endif; ?><section class="app-admin-grid"><form method="post" class="app-form-card"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="action" value="<?= $editing ? 'edit' : 'add' ?>"><?php if ($editing): ?><input type="hidden" name="id" value="<?= (int) $editing['id'] ?>"><?php endif; ?><h2><?= $editing ? 'Edit category' : 'Add category' ?></h2><?php if (!empty($_SESSION['form_error'])): ?><p class="app-form-error"><?= e((string) $_SESSION['form_error']); unset($_SESSION['form_error']); ?></p><?php endif; ?><label class="app-field">Name<input name="name" required maxlength="100" value="<?= e($editing['name'] ?? '') ?>"></label><button class="primary-button" type="submit"><?= $editing ? 'Save changes' : 'Add category' ?></button><?php if ($editing): ?><a class="app-cancel-link" href="<?= e(BASE_URL) ?>/owner/categories.php">Cancel</a><?php endif; ?></form><section class="app-list-card"><h2>All categories</h2><div class="app-table-wrap"><table class="app-table"><thead><tr><th>Name</th><th>Status</th><th>Actions</th></tr></thead><tbody><?php foreach ($rows as $row): ?><tr><td><?= e($row['name']) ?></td><td><span class="app-status-badge"><?= $row['is_archived'] ? 'Archived' : 'Active' ?></span></td><td><a class="app-table-link" href="?edit=<?= (int) $row['id'] ?>">Edit</a><form method="post" class="app-inline-form"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="<?= $row['is_archived'] ? 'restore' : 'archive' ?>"><button class="app-table-link" type="submit"><?= $row['is_archived'] ? 'Restore' : 'Archive' ?></button></form></td></tr><?php endforeach; ?></tbody></table></div></section></section></main><?php require __DIR__ . '/../includes/footer.php'; ?>
+<main class="app-owner-page">
+    <div class="app-page-heading">
+        <div><p class="eyebrow">Owner tools</p><h1>Categories<span>.</span></h1></div>
+        <a class="app-toggle-link" href="<?= e(BASE_URL) ?>/owner/categories.php<?= $archived ? '' : '?archived=1' ?>"><?= $archived ? 'Hide archived' : 'Show archived' ?></a>
+    </div>
+    <?php if (!empty($_SESSION['flash'])): ?><p class="app-message app-message-success"><?= e((string) $_SESSION['flash']); unset($_SESSION['flash']); ?></p><?php endif; ?>
+    <section class="app-admin-grid">
+        <form method="post" class="app-form-card">
+            <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="<?= $editing ? 'edit' : 'add' ?>">
+            <?php if ($editing): ?><input type="hidden" name="id" value="<?= (int) $editing['id'] ?>"><?php endif; ?>
+            <h2><?= $editing ? 'Edit category' : 'Add category' ?></h2>
+            <?php if (!empty($_SESSION['form_error'])): ?><p class="app-form-error"><?= e((string) $_SESSION['form_error']); unset($_SESSION['form_error']); ?></p><?php endif; ?>
+            <label class="app-field">Name<input name="name" required maxlength="100" value="<?= e($editing['name'] ?? '') ?>"></label>
+            <button class="primary-button" type="submit"><?= $editing ? 'Save changes' : 'Add category' ?></button>
+            <?php if ($editing): ?><a class="app-cancel-link" href="<?= e(BASE_URL) ?>/owner/categories.php">Cancel</a><?php endif; ?>
+        </form>
+        <section class="app-list-card"><h2>All categories</h2><div class="app-table-wrap"><table class="app-table"><thead><tr><th>Name</th><th>Status</th><th>Actions</th></tr></thead><tbody><?php foreach ($rows as $row): ?><tr><td><?= e($row['name']) ?></td><td><span class="app-status-badge"><?= $row['is_archived'] ? 'Archived' : 'Active' ?></span></td><td><a class="app-table-link" href="?edit=<?= (int) $row['id'] ?>">Edit</a><form method="post" class="app-inline-form"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="<?= $row['is_archived'] ? 'restore' : 'archive' ?>"><button class="app-table-link" type="submit"><?= $row['is_archived'] ? 'Restore' : 'Archive' ?></button></form></td></tr><?php endforeach; ?></tbody></table></div></section>
+    </section>
+</main>
+<?php require __DIR__ . '/../includes/footer.php'; ?>
