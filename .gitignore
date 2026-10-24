@@ -1,0 +1,14 @@
+node_modules/
+.env
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+
+# AI instructions and rules (local only)
+AGENTS.md
+docs/
+
+# Not used by the PHP project
+package.json
+package-lock.json
