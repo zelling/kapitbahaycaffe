@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'category_id' => $categoryId,
         'price' => $price,
         'description' => trim((string) ($_POST['description'] ?? '')) ?: null,
-        'is_available' => !empty($_POST['is_available']),
+        'is_available' => (int) !empty($_POST['is_available']),
         'id' => $id,
     ];
 
@@ -66,7 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $statement = $pdo->prepare('INSERT INTO menu_items (category_id, name, description, price, is_available) VALUES (:category_id, :name, :description, :price, :is_available)');
-    $statement->execute($data);
+    $statement->execute([
+        'category_id' => $data['category_id'],
+        'name' => $data['name'],
+        'description' => $data['description'],
+        'price' => $data['price'],
+        'is_available' => $data['is_available'],
+    ]);
     menu_redirect('Menu item added.');
 }
 

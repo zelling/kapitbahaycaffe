@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (in_array($action, ['archive', 'restore'], true)) {
         $statement = $pdo->prepare('UPDATE categories SET is_archived = :archived WHERE id = :id');
-        $statement->execute(['archived' => $action === 'archive', 'id' => $id]);
+        $statement->execute(['archived' => (int) ($action === 'archive'), 'id' => $id]);        
         category_go($action === 'archive' ? 'Category archived.' : 'Category restored.');
     }
 
