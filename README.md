@@ -12,7 +12,7 @@
 | Role | Email | Password |
 | --- | --- | --- |
 | Owner | owner@kapetbahay.test | password |
-| Staff | staff@kapetbahay.test | password |
+| Staff | staff@kapetbahay.test | password | #remove staff account
 
 These are throwaway local development accounts. Change or remove them before any non-demo use.
 
