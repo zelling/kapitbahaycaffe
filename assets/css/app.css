@@ -1,0 +1,19 @@
+/* Application-only additions. Prototype selectors and variables are intentionally untouched. */
+.app-header-inner { align-items: center; display: flex; gap: 16px; margin: 0 auto; max-width: 1280px; padding: 0 32px; width: 100%; }
+.app-navigation { display: flex; flex: 0 0 auto; gap: 4px; margin-left: 8px; margin-right: auto; }
+.app-navigation-link { border-bottom: 2px solid transparent; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .8px; padding: 10px 12px 8px; text-decoration: none; text-transform: uppercase; }
+.app-navigation-link:hover, .app-navigation-link-current { border-color: var(--terra); color: var(--ink); }
+.app-user-name { color: var(--muted); font-size: 12px; letter-spacing: .04em; }
+.app-user-actions { align-items: center; display: flex; flex: 0 0 auto; gap: 12px; white-space: nowrap; }
+.app-footer { color: var(--muted); font-size: 12px; padding: 24px 32px; text-align: center; }
+.app-page-shell { margin: 0 auto; max-width: 1120px; min-height: calc(100vh - 150px); padding: 96px 32px; }
+.app-page-intro { color: var(--muted); line-height: 1.7; max-width: 620px; }
+.app-status-row { margin: 28px 0; }
+.app-status-badge { background: #e8eee2; color: #4d6c4c; display: inline-flex; font-size: 10px; font-weight: 700; letter-spacing: .8px; padding: 8px 10px; text-transform: uppercase; }
+.app-signout-button { background: var(--ink); border: 0; border-radius: 3px; color: #fff; font-size: 10px; font-weight: 700; padding: 9px 12px; }
+.app-signout-button:hover { background: #3f594a; }
+.app-return-link { margin-top: 8px; }
+.app-empty-state { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; max-width: 560px; padding: 48px; }
+.app-form-error { color: #a74332; font-size: 12px; line-height: 1.5; margin: 0; }
+.app-login-form { display: grid; gap: 16px; }
+@media (max-width: 640px) { .app-header-inner { gap: 8px; padding: 0 18px; } .app-navigation { margin-left: 0; margin-right: auto; } .app-navigation-link { padding-left: 8px; padding-right: 8px; } .app-user-name { display: none; } .app-user-actions { gap: 0; } .app-page-shell { padding: 64px 18px; } .app-empty-state { padding: 32px 24px; } }
