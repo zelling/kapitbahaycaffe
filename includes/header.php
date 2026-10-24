@@ -11,6 +11,7 @@ $navigation = [
     ['label' => 'Categories', 'path' => '/owner/categories.php', 'roles' => ['owner']],
     ['label' => 'Ingredients', 'path' => '/owner/ingredients.php', 'roles' => ['owner']],
     ['label' => 'Recipes', 'path' => '/owner/recipes.php', 'roles' => ['owner']],
+    ['label' => 'Record sale', 'path' => '/staff/sales.php', 'roles' => ['owner', 'staff']],
 ];
 $current_path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 ?>
