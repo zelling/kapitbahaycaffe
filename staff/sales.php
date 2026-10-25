@@ -18,6 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit('Invalid request. Please return to the sales page and try again.');
     }
 
+    // The sale form has no action; reject a tampered action field.
+    $action = (string) ($_POST['action'] ?? '');
+    if (!in_array($action, [''], true)) {
+        http_response_code(400);
+        exit('Invalid request.');
+    }
+
     $submittedItems = $_POST['items'] ?? null;
     if (!is_array($submittedItems) || $submittedItems === []) {
         sales_redirect('Add at least one item before recording a sale.', 'error');

@@ -20,6 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
     $id = (int) ($_POST['id'] ?? 0);
 
+    // Reject tampered actions before they can fall through to an insert.
+    if (!in_array($action, ['add', 'edit', 'archive', 'restore'], true)) {
+        http_response_code(400);
+        exit('Invalid request.');
+    }
+
     if (in_array($action, ['archive', 'restore'], true)) {
         $statement = $pdo->prepare('UPDATE categories SET is_archived = :archived WHERE id = :id');
         $statement->execute(['archived' => (int) ($action === 'archive'), 'id' => $id]);        

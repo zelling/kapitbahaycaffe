@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../includes/bootstrap.php';
+
 // Adjust these values for the local XAMPP installation.
 const DB_HOST = '127.0.0.1';
 const DB_NAME = 'kapetbahay';

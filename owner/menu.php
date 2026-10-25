@@ -20,6 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
     $id = (int) ($_POST['id'] ?? 0);
 
+    // Reject tampered actions before they can fall through to an insert.
+    if (!in_array($action, ['add', 'edit', 'archive', 'restore', 'availability'], true)) {
+        http_response_code(400);
+        exit('Invalid request.');
+    }
+
     if (in_array($action, ['archive', 'restore', 'availability'], true)) {
         $field = $action === 'availability' ? 'is_available' : 'is_archived';
         $value = $action === 'availability' ? (int) !empty($_POST['is_available']) : ($action === 'archive' ? 1 : 0);

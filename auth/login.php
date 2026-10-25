@@ -13,6 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         http_response_code(400);
         $error = 'Your session expired. Please try again.';
     } else {
+        // The login form has no action; reject a tampered action field.
+        $action = (string) ($_POST['action'] ?? '');
+        if (!in_array($action, [''], true)) {
+            http_response_code(400);
+            exit('Invalid request.');
+        }
+
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $statement = $pdo->prepare('SELECT id, name, password_hash, role FROM users WHERE email = :email LIMIT 1');

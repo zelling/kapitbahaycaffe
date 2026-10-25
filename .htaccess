@@ -1,0 +1,10 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(config|includes|database|docs|prototype)(/|$) - [F,L]
+</IfModule>
+
+<FilesMatch "\.(sql|md|json|lock|gitignore)$">
+    Require all denied
+</FilesMatch>
