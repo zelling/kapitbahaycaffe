@@ -15,5 +15,6 @@ $viewer = current_user();
     <p class="app-page-intro">Your secure café workspace is ready. Sales, menu management, and analytics are added in the next phases.</p>
     <div class="app-status-row"><span class="app-status-badge"><?= e(ucfirst($viewer['role'])) ?> access</span></div>
     <a class="primary-button app-home-sale-button" href="<?= e(BASE_URL) ?>/staff/sales.php">Record sale</a>
+    <a class="primary-button app-home-dashboard-button" href="<?= e(BASE_URL) ?>/analytics/dashboard.php">Dashboard</a>
 </main>
 <?php require __DIR__ . '/includes/footer.php'; ?>
