@@ -12,7 +12,8 @@ $navigation = [
     ['label' => 'Ingredients', 'path' => '/owner/ingredients.php', 'roles' => ['owner']],
     ['label' => 'Recipes', 'path' => '/owner/recipes.php', 'roles' => ['owner']],
     ['label' => 'Record sale', 'path' => '/staff/sales.php', 'roles' => ['owner', 'staff']],
-    ['label' => 'Dashboard', 'path' => '/analytics/dashboard.php', 'roles' => ['owner', 'staff']],
+    // Analytics are restricted to the owner.
+    ['label' => 'Dashboard', 'path' => '/analytics/dashboard.php', 'roles' => ['owner']],
 ];
 $current_path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 ?>

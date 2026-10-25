@@ -17,7 +17,12 @@ function analytics_api_response(int $status, array $payload): never
 
 // Reject unauthenticated API requests without redirecting to the login page.
 if (!is_logged_in()) {
-    analytics_api_response(401, ['error' => 'Authentication is required.']);
+    analytics_api_response(401, ['error' => 'Authentication required.']);
+}
+
+// Reject staff before reading the range or running any analytics query.
+if ((current_user()['role'] ?? '') !== 'owner') {
+    analytics_api_response(403, ['error' => 'Forbidden.']);
 }
 
 // Accept only read-only API requests.

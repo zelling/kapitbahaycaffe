@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
-require_login();
+// Restrict analytics and all subsequent queries to the owner.
+require_role('owner');
 require_once __DIR__ . '/../includes/analytics.php';
 
 // Load the selected range and analytics for the first server-rendered view.

@@ -9,10 +9,10 @@
 
 ## Demo accounts
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Owner | owner@kapetbahay.test | password |
-| Staff | staff@kapetbahay.test | password | #remove staff account
+| Role | Email | Password | Access |
+| --- | --- | --- | --- |
+| Owner | owner@kapetbahay.test | password | Menu management, record sales, and analytics dashboard |
+| Staff | staff@kapetbahay.test | password | Record sales only |
 
 These are throwaway local development accounts. Change or remove them before any non-demo use.
 
