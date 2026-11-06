@@ -38,6 +38,7 @@ CREATE TABLE ingredients (
     stock_qty DECIMAL(12,3) NOT NULL DEFAULT 0,
     min_stock_level DECIMAL(12,3) NOT NULL DEFAULT 0,
     stock_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    low_stock_notified_at DATETIME NULL,
     is_archived TINYINT(1) NOT NULL DEFAULT 0,
     INDEX idx_ingredients_archived (is_archived)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

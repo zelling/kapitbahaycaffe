@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $statement->execute(['id' => $id]);
         $current = $statement->fetch();
         $stock_changed = !$current || (float) $current['stock_qty'] !== (float) $stock;
-        $timestamp_sql = $stock_changed ? ', stock_updated_at = NOW()' : '';
+        $timestamp_sql = $stock_changed ? ', stock_updated_at = NOW(), low_stock_notified_at = NULL' : '';
 
         $statement = $pdo->prepare(
             'UPDATE ingredients SET name = :name, unit = :unit, stock_qty = :stock, min_stock_level = :minimum'

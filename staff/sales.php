@@ -86,6 +86,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $pdo->commit();
+        try {
+            require_once __DIR__ . '/../includes/stock_alerts.php';
+            notify_new_low_stock($pdo, array_column($saleItems, 'menu_item_id'));
+        } catch (Throwable $exception) {
+            error_log('Low-stock notification check failed.');
+        }
         sales_redirect('Sale recorded. Total: ' . peso($totalAmount));
     } catch (RuntimeException $exception) {
         if ($pdo->inTransaction()) {

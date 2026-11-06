@@ -5,6 +5,7 @@ Thumbs.db
 *.log
 .vscode/
 config/recaptcha.php
+config/mail.php
 
 # AI instructions and rules (local only)
 AGENTS.md
