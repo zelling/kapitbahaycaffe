@@ -17,6 +17,7 @@
 .app-empty-state { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; max-width: 560px; padding: 48px; }
 .app-form-error { color: #a74332; font-size: 12px; line-height: 1.5; margin: 0; }
 .app-login-form { display: grid; gap: 16px; }
+.app-recaptcha { min-height: 78px; }
 .app-owner-page { margin: 0 auto; max-width: 1180px; padding: 42px 32px 64px; }
 .app-page-heading { align-items: end; display: flex; justify-content: space-between; margin-bottom: 24px; }
 .app-page-heading h1 { font-family: var(--serif); font-size: 38px; margin: 8px 0 0; }.app-page-heading h1 span,.app-item-category { color: var(--terra, var(--terracotta, #bf684c)); }

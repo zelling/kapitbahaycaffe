@@ -4,6 +4,7 @@ node_modules/
 Thumbs.db
 *.log
 .vscode/
+config/recaptcha.php
 
 # AI instructions and rules (local only)
 AGENTS.md
