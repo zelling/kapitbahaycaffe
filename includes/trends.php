@@ -1,36 +1,69 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/analytics.php';
+// Trend thresholds. Change them here only.
+const TRENDS_CHANGE_PERCENT = 20.0;
+const TRENDS_MIN_UNITS = 5;
+const TRENDS_ESTIMATE_LABEL = 'Estimate from past averages. Not a forecast.';
+const TRENDS_TIMEZONE = 'Asia/Manila';
 
 /**
- * Build the selected reporting period and its immediately preceding equal period.
+ * Build the selected period (day, week or month) and its previous period.
  *
  * @param array<string, mixed> $input
- * @return array<string, string>
+ * @return array<string, mixed>
  */
 function trends_period(array $input): array
 {
-    $range = analytics_date_range($input);
-    $timezone = new DateTimeZone('Asia/Manila');
-    $currentStart = new DateTimeImmutable($range['from'], $timezone);
-    $currentEnd = new DateTimeImmutable($range['to_exclusive'], $timezone);
-    $days = (int) $currentStart->diff($currentEnd)->days;
-    $previousStart = $currentStart->modify('-' . $days . ' days');
+    $tz = new DateTimeZone(TRENDS_TIMEZONE);
+    $today = new DateTimeImmutable('today', $tz);
+
+    $mode = (string) ($input['mode'] ?? 'week');
+    if (!in_array($mode, ['day', 'week', 'month'], true)) {
+        $mode = 'week';
+    }
+
+    // Anchor date: valid Y-m-d, not in the future, otherwise today.
+    $anchor = $today;
+    $raw = (string) ($input['anchor'] ?? '');
+    if ($raw !== '') {
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $raw, $tz);
+        if ($parsed !== false && $parsed->format('Y-m-d') === $raw && $parsed <= $today) {
+            $anchor = $parsed;
+        }
+    }
+
+    if ($mode === 'day') {
+        $start = $anchor;
+        $end = $anchor->modify('+1 day');
+        $previousStart = $anchor->modify('-1 day');
+        $label = $anchor->format('D, M j, Y');
+    } elseif ($mode === 'week') {
+        $start = $anchor->modify('monday this week');
+        $end = $start->modify('+7 days');
+        $previousStart = $start->modify('-7 days');
+        $label = $start->format('M j') . ' to ' . $end->modify('-1 day')->format('M j, Y');
+    } else {
+        $start = $anchor->modify('first day of this month');
+        $end = $start->modify('+1 month');
+        $previousStart = $start->modify('-1 month');
+        $label = $start->format('F Y');
+    }
 
     return [
-        'from' => $range['from'],
-        'to' => $range['to'],
-        'to_exclusive' => $range['to_exclusive'],
-        'label' => $range['label'],
-        'previous_from' => $previousStart->format('Y-m-d'),
-        'previous_to' => $currentStart->modify('-1 day')->format('Y-m-d'),
-        'previous_to_exclusive' => $currentStart->format('Y-m-d H:i:s'),
+        'mode' => $mode,
+        'anchor' => $anchor->format('Y-m-d'),
+        'label' => $label,
+        'start' => $start->format('Y-m-d'),
+        'end' => $end->format('Y-m-d'),
+        'previous_start' => $previousStart->format('Y-m-d'),
+        'previous_end' => $start->format('Y-m-d'),
+        'in_progress' => $end > $today->modify('+1 day'),
     ];
 }
 
 /**
- * Return SQL and PHP-only trend statistics for a validated range.
+ * Return all trend statistics. SQL and PHP only, no AI.
  *
  * @param array<string, mixed> $input
  * @return array<string, mixed>
@@ -38,113 +71,151 @@ function trends_period(array $input): array
 function trends_data(PDO $pdo, array $input): array
 {
     $period = trends_period($input);
-    $daily = trends_daily_totals($pdo, $period);
+    $first = trends_first_sale_date($pdo);
+    $hasPrevious = $first !== null && $period['previous_start'] >= $first;
+    $comparables = trends_comparable_periods($period);
+    $hasComparables = $first !== null && $comparables !== []
+        && min(array_column($comparables, 'from')) >= $first;
+
+    $currentItems = trends_item_units($pdo, $period['start'], $period['end']);
+    $previousItems = trends_item_units($pdo, $period['previous_start'], $period['previous_end']);
+
+    // Day mode also compares with the same weekday of the previous 4 weeks.
+    $baselineItems = [];
+    if ($period['mode'] === 'day' && $hasComparables) {
+        foreach ($comparables as $past) {
+            foreach (trends_item_units($pdo, $past['from'], $past['to']) as $id => $row) {
+                $baselineItems[$id] = ($baselineItems[$id] ?? 0) + $row['units'];
+            }
+        }
+    }
+
+    $items = [];
+    foreach ($currentItems as $id => $row) {
+        $current = $row['units'];
+        $previous = $previousItems[$id]['units'] ?? 0;
+        $baseline = null;
+        if ($period['mode'] === 'day' && $hasComparables) {
+            $baseline = round(($baselineItems[$id] ?? 0) / count($comparables), 2);
+        }
+        $items[] = [
+            'id' => $id,
+            'name' => $row['name'],
+            'units' => $current,
+            'previous_units' => $previous,
+            'percent_change' => $hasPrevious ? trends_percent_change($current, $previous) : null,
+            'status' => $hasPrevious ? trends_status($current, $previous) : 'not_enough_data',
+            'baseline_units' => $baseline,
+            'baseline_percent_change' => $baseline === null ? null : trends_percent_change($current, $baseline),
+        ];
+    }
+
+    $currentUsage = trends_ingredient_usage($pdo, $period['start'], $period['end']);
+    $previousUsage = trends_ingredient_usage($pdo, $period['previous_start'], $period['previous_end']);
+    $ingredients = [];
+    foreach ($currentUsage as $id => $row) {
+        $previous = $previousUsage[$id]['total_usage'] ?? 0.0;
+        $ingredients[] = [
+            'id' => $id,
+            'name' => $row['name'],
+            'unit' => $row['unit'],
+            'total_usage' => $row['total_usage'],
+            'previous_total_usage' => $previous,
+            'percent_change' => $hasPrevious ? trends_percent_change($row['total_usage'], $previous) : null,
+        ];
+    }
 
     return [
         'period' => $period,
-        'daily' => $daily,
-        'items' => trends_item_weeks($pdo, $period),
-        'ingredients' => trends_ingredient_weeks($pdo, $period),
-        'weekday_averages' => trends_weekday_averages($daily),
-        'unusual_days' => trends_unusual_days($daily),
+        'first_sale_date' => $first,
+        'enough_data' => $hasPrevious,
+        'enough_baseline' => $hasComparables,
+        'thresholds' => [
+            'change_percent' => TRENDS_CHANGE_PERCENT,
+            'min_units' => TRENDS_MIN_UNITS,
+        ],
+        'daily' => trends_daily_series($pdo, $period),
+        'items' => $items,
+        'ingredients' => $ingredients,
+        'weekday_averages' => trends_weekday_averages($pdo, $period, $first),
+        'expected_range' => trends_expected_range($pdo, $period, $comparables, $hasComparables),
     ];
 }
 
-/**
- * Return one row per selected day with units, revenue, and a trailing seven-day average.
- *
- * @param array<string, string> $period
- * @return list<array<string, float|int|string>>
- */
-function trends_daily_totals(PDO $pdo, array $period): array
+/** Date of the first recorded sale (Y-m-d), or null when there are no sales. */
+function trends_first_sale_date(PDO $pdo): ?string
 {
-    $timezone = new DateTimeZone('Asia/Manila');
-    $from = new DateTimeImmutable($period['from'], $timezone);
-    $historyFrom = $from->modify('-6 days');
-    $statement = $pdo->prepare(
-        'SELECT DATE(s.sold_at) AS sale_date,
-                COALESCE(SUM(si.quantity), 0) AS units,
-                COALESCE(SUM(si.quantity * si.unit_price), 0) AS revenue
-         FROM sales s
-         INNER JOIN sale_items si ON si.sale_id = s.id
-         WHERE s.sold_at >= :history_from
-           AND s.sold_at < :to_exclusive
-         GROUP BY DATE(s.sold_at)'
-    );
-    $statement->execute([
-        'history_from' => $historyFrom->format('Y-m-d H:i:s'),
-        'to_exclusive' => $period['to_exclusive'],
-    ]);
-
-    $totals = [];
-    foreach ($statement->fetchAll() as $row) {
-        $totals[(string) $row['sale_date']] = [
-            'units' => (int) $row['units'],
-            'revenue' => analytics_money($row['revenue']),
-        ];
+    $value = $pdo->query('SELECT MIN(sold_at) FROM sales')->fetchColumn();
+    if ($value === false || $value === null) {
+        return null;
     }
 
-    $history = [];
-    $daily = [];
-    $end = new DateTimeImmutable($period['to'], $timezone);
-    for ($day = $historyFrom; $day <= $end; $day = $day->modify('+1 day')) {
-        $date = $day->format('Y-m-d');
-        $units = $totals[$date]['units'] ?? 0;
-        $history[] = $units;
-        if (count($history) > 7) {
-            array_shift($history);
-        }
-        if ($day < $from) {
-            continue;
-        }
-        $daily[] = [
-            'date' => $date,
-            'units' => $units,
-            'revenue' => $totals[$date]['revenue'] ?? 0.0,
-            'moving_average' => round(array_sum($history) / count($history), 2),
-        ];
-    }
-
-    return $daily;
+    return substr((string) $value, 0, 10);
 }
 
 /**
- * Return menu-item units for the current and preceding equal periods.
+ * Past periods used for the baseline and the expected range.
+ * Day: same weekday, 4 weeks. Week: previous 4 weeks. Month: previous 3 months.
  *
- * @param array<string, string> $period
- * @return list<array<string, float|int|string|null>>
+ * @param array<string, mixed> $period
+ * @return list<array{from: string, to: string}>
  */
-function trends_item_weeks(PDO $pdo, array $period): array
+function trends_comparable_periods(array $period): array
+{
+    $tz = new DateTimeZone(TRENDS_TIMEZONE);
+    $start = new DateTimeImmutable($period['start'], $tz);
+    $list = [];
+
+    if ($period['mode'] === 'day') {
+        for ($k = 1; $k <= 4; $k++) {
+            $from = $start->modify('-' . (7 * $k) . ' days');
+            $list[] = ['from' => $from->format('Y-m-d'), 'to' => $from->modify('+1 day')->format('Y-m-d')];
+        }
+    } elseif ($period['mode'] === 'week') {
+        for ($k = 1; $k <= 4; $k++) {
+            $from = $start->modify('-' . (7 * $k) . ' days');
+            $list[] = ['from' => $from->format('Y-m-d'), 'to' => $from->modify('+7 days')->format('Y-m-d')];
+        }
+    } else {
+        for ($k = 1; $k <= 3; $k++) {
+            $from = $start->modify('-' . $k . ' month');
+            $list[] = ['from' => $from->format('Y-m-d'), 'to' => $from->modify('+1 month')->format('Y-m-d')];
+        }
+    }
+
+    return $list;
+}
+
+/**
+ * Units per menu item for [from, to). Includes unsold active items.
+ *
+ * @return array<int, array{name: string, units: int}>
+ */
+function trends_item_units(PDO $pdo, string $from, string $to): array
 {
     $statement = $pdo->prepare(
-        'SELECT m.id,
-                m.name,
-                COALESCE(SUM(CASE WHEN s.sold_at >= :from AND s.sold_at < :to_exclusive THEN si.quantity ELSE 0 END), 0) AS current_units,
-                COALESCE(SUM(CASE WHEN s.sold_at >= :previous_from AND s.sold_at < :previous_to_exclusive THEN si.quantity ELSE 0 END), 0) AS previous_units
+        'SELECT m.id, m.name, COALESCE(u.units, 0) AS units
          FROM menu_items m
-         LEFT JOIN sale_items si ON si.menu_item_id = m.id
-         LEFT JOIN sales s ON s.id = si.sale_id
-         GROUP BY m.id, m.name, m.is_archived
-         HAVING m.is_archived = 0 OR current_units > 0 OR previous_units > 0
-         ORDER BY current_units DESC, m.name ASC'
+         LEFT JOIN (
+             SELECT si.menu_item_id, SUM(si.quantity) AS units
+             FROM sale_items si
+             INNER JOIN sales s ON s.id = si.sale_id
+             WHERE s.sold_at >= :from_date AND s.sold_at < :to_date
+             GROUP BY si.menu_item_id
+         ) u ON u.menu_item_id = m.id
+         WHERE m.is_archived = 0 OR COALESCE(u.units, 0) > 0
+         ORDER BY units DESC, m.name ASC'
     );
     $statement->execute([
-        'from' => $period['from'] . ' 00:00:00',
-        'to_exclusive' => $period['to_exclusive'],
-        'previous_from' => $period['previous_from'] . ' 00:00:00',
-        'previous_to_exclusive' => $period['previous_to_exclusive'],
+        'from_date' => $from . ' 00:00:00',
+        'to_date' => $to . ' 00:00:00',
     ]);
 
     $items = [];
-    foreach ($statement->fetchAll() as $row) {
-        $current = (int) $row['current_units'];
-        $previous = (int) $row['previous_units'];
-        $items[] = [
-            'id' => (int) $row['id'],
+    foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $items[(int) $row['id']] = [
             'name' => (string) $row['name'],
-            'units' => $current,
-            'previous_units' => $previous,
-            'percent_change' => trends_percent_change($current, $previous),
+            'units' => (int) $row['units'],
         ];
     }
 
@@ -152,77 +223,155 @@ function trends_item_weeks(PDO $pdo, array $period): array
 }
 
 /**
- * Return estimated ingredient usage for the current and preceding equal periods.
+ * Estimated usage per active ingredient for [from, to), field total_usage.
  *
- * @param array<string, string> $period
- * @return list<array<string, float|int|string|null>>
+ * @return array<int, array{name: string, unit: string, total_usage: float}>
  */
-function trends_ingredient_weeks(PDO $pdo, array $period): array
+function trends_ingredient_usage(PDO $pdo, string $from, string $to): array
 {
     $statement = $pdo->prepare(
-        'SELECT i.id,
-                i.name,
-                i.unit,
-                COALESCE(SUM(CASE WHEN s.sold_at >= :from AND s.sold_at < :to_exclusive THEN si.quantity * r.qty_per_item ELSE 0 END), 0) AS current_usage,
-                COALESCE(SUM(CASE WHEN s.sold_at >= :previous_from AND s.sold_at < :previous_to_exclusive THEN si.quantity * r.qty_per_item ELSE 0 END), 0) AS previous_usage
+        'SELECT i.id, i.name, i.unit, COALESCE(u.total_usage, 0) AS total_usage
          FROM ingredients i
-         LEFT JOIN recipes r ON r.ingredient_id = i.id
-         LEFT JOIN sale_items si ON si.menu_item_id = r.menu_item_id
-         LEFT JOIN sales s ON s.id = si.sale_id
+         LEFT JOIN (
+             SELECT r.ingredient_id, SUM(si.quantity * r.qty_per_item) AS total_usage
+             FROM sale_items si
+             INNER JOIN sales s ON s.id = si.sale_id
+             INNER JOIN recipes r ON r.menu_item_id = si.menu_item_id
+             WHERE s.sold_at >= :from_date AND s.sold_at < :to_date
+             GROUP BY r.ingredient_id
+         ) u ON u.ingredient_id = i.id
          WHERE i.is_archived = 0
-         GROUP BY i.id, i.name, i.unit
-         ORDER BY current_usage DESC, i.name ASC'
+         ORDER BY total_usage DESC, i.name ASC'
     );
     $statement->execute([
-        'from' => $period['from'] . ' 00:00:00',
-        'to_exclusive' => $period['to_exclusive'],
-        'previous_from' => $period['previous_from'] . ' 00:00:00',
-        'previous_to_exclusive' => $period['previous_to_exclusive'],
+        'from_date' => $from . ' 00:00:00',
+        'to_date' => $to . ' 00:00:00',
     ]);
 
-    $ingredients = [];
-    foreach ($statement->fetchAll() as $row) {
-        $current = analytics_quantity($row['current_usage']);
-        $previous = analytics_quantity($row['previous_usage']);
-        $ingredients[] = [
-            'id' => (int) $row['id'],
+    $rows = [];
+    foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $rows[(int) $row['id']] = [
             'name' => (string) $row['name'],
             'unit' => (string) $row['unit'],
-            'total_usage' => $current,
-            'previous_total_usage' => $previous,
-            'percent_change' => trends_percent_change($current, $previous),
+            'total_usage' => round((float) $row['total_usage'], 2),
         ];
     }
 
-    return $ingredients;
-}
-
-function trends_percent_change(float|int $current, float|int $previous): ?float
-{
-    if ((float) $previous === 0.0) {
-        return null;
-    }
-
-    return round((((float) $current - (float) $previous) / (float) $previous) * 100, 1);
+    return $rows;
 }
 
 /**
- * Calculate average units by weekday from the selected daily values.
+ * Units and revenue per day for [from, to), keyed by Y-m-d.
  *
- * @param list<array<string, float|int|string>> $daily
- * @return list<array<string, float|string>>
+ * @return array<string, array{units: int, revenue: float}>
  */
-function trends_weekday_averages(array $daily): array
+function trends_daily_map(PDO $pdo, string $from, string $to): array
 {
-    $totals = array_fill(0, 7, 0);
-    $counts = array_fill(0, 7, 0);
-    foreach ($daily as $row) {
-        $index = (int) (new DateTimeImmutable((string) $row['date']))->format('w');
-        $totals[$index] += (int) $row['units'];
-        $counts[$index]++;
+    $statement = $pdo->prepare(
+        'SELECT DATE(s.sold_at) AS sale_date,
+                SUM(si.quantity) AS units,
+                SUM(si.quantity * si.unit_price) AS revenue
+         FROM sales s
+         INNER JOIN sale_items si ON si.sale_id = s.id
+         WHERE s.sold_at >= :from_date AND s.sold_at < :to_date
+         GROUP BY DATE(s.sold_at)'
+    );
+    $statement->execute([
+        'from_date' => $from . ' 00:00:00',
+        'to_date' => $to . ' 00:00:00',
+    ]);
+
+    $map = [];
+    foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $map[(string) $row['sale_date']] = [
+            'units' => (int) $row['units'],
+            'revenue' => round((float) $row['revenue'], 2),
+        ];
     }
 
+    return $map;
+}
+
+/**
+ * Chart series with a 7-day moving average. Day mode shows the 7 days
+ * ending on the anchor; week and month show the period up to today.
+ *
+ * @param array<string, mixed> $period
+ * @return list<array<string, float|int|string>>
+ */
+function trends_daily_series(PDO $pdo, array $period): array
+{
+    $tz = new DateTimeZone(TRENDS_TIMEZONE);
+    $tomorrow = (new DateTimeImmutable('today', $tz))->modify('+1 day');
+    $end = new DateTimeImmutable($period['end'], $tz);
+    if ($end > $tomorrow) {
+        $end = $tomorrow;
+    }
+
+    $start = new DateTimeImmutable($period['start'], $tz);
+    if ($period['mode'] === 'day') {
+        $start = $end->modify('-7 days');
+    }
+
+    $historyStart = $start->modify('-6 days');
+    $map = trends_daily_map($pdo, $historyStart->format('Y-m-d'), $end->format('Y-m-d'));
+
+    $window = [];
+    $series = [];
+    for ($day = $historyStart; $day < $end; $day = $day->modify('+1 day')) {
+        $date = $day->format('Y-m-d');
+        $units = $map[$date]['units'] ?? 0;
+        $window[] = $units;
+        if (count($window) > 7) {
+            array_shift($window);
+        }
+        if ($day < $start) {
+            continue;
+        }
+        $series[] = [
+            'date' => $date,
+            'units' => $units,
+            'revenue' => $map[$date]['revenue'] ?? 0.0,
+            'moving_average' => round(array_sum($window) / count($window), 2),
+        ];
+    }
+
+    return $series;
+}
+
+/**
+ * Average units per weekday over the 28 days before the period ends,
+ * counting only days on or after the first sale.
+ *
+ * @param array<string, mixed> $period
+ * @return list<array{day: string, average_units: float}>
+ */
+function trends_weekday_averages(PDO $pdo, array $period, ?string $first): array
+{
     $names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    $totals = array_fill(0, 7, 0);
+    $counts = array_fill(0, 7, 0);
+
+    if ($first !== null) {
+        $tz = new DateTimeZone(TRENDS_TIMEZONE);
+        $tomorrow = (new DateTimeImmutable('today', $tz))->modify('+1 day');
+        $end = new DateTimeImmutable($period['end'], $tz);
+        if ($end > $tomorrow) {
+            $end = $tomorrow;
+        }
+        $start = $end->modify('-28 days');
+        $map = trends_daily_map($pdo, $start->format('Y-m-d'), $end->format('Y-m-d'));
+        for ($day = $start; $day < $end; $day = $day->modify('+1 day')) {
+            $date = $day->format('Y-m-d');
+            if ($date < $first) {
+                continue;
+            }
+            $index = (int) $day->format('w');
+            $totals[$index] += $map[$date]['units'] ?? 0;
+            $counts[$index]++;
+        }
+    }
+
     $averages = [];
     foreach ($names as $index => $name) {
         $averages[] = [
@@ -235,41 +384,81 @@ function trends_weekday_averages(array $daily): array
 }
 
 /**
- * Flag selected days at least two standard deviations from the period mean.
+ * Expected range of total units from past comparable periods.
  *
- * @param list<array<string, float|int|string>> $daily
- * @return list<array<string, float|int|string>>
+ * @param array<string, mixed> $period
+ * @param list<array{from: string, to: string}> $comparables
+ * @return array<string, mixed>
  */
-function trends_unusual_days(array $daily): array
+function trends_expected_range(PDO $pdo, array $period, array $comparables, bool $enough): array
 {
-    if (count($daily) < 7) {
-        return [];
+    $result = [
+        'available' => false,
+        'label' => TRENDS_ESTIMATE_LABEL,
+        'basis' => count($comparables),
+        'low' => null,
+        'high' => null,
+        'average' => null,
+    ];
+    if (!$enough) {
+        return $result;
     }
 
-    $units = array_map(static fn (array $row): int => (int) $row['units'], $daily);
-    $mean = array_sum($units) / count($units);
-    $variance = 0.0;
-    foreach ($units as $value) {
-        $variance += ($value - $mean) ** 2;
-    }
-    $standardDeviation = sqrt($variance / count($units));
-    if ($standardDeviation === 0.0) {
-        return [];
+    $totals = [];
+    foreach ($comparables as $past) {
+        $totals[] = trends_units_between($pdo, $past['from'], $past['to']);
     }
 
-    $unusual = [];
-    foreach ($daily as $row) {
-        $difference = (int) $row['units'] - $mean;
-        if (abs($difference) < 2 * $standardDeviation) {
-            continue;
-        }
-        $unusual[] = [
-            'date' => (string) $row['date'],
-            'units' => (int) $row['units'],
-            'direction' => $difference > 0 ? 'higher' : 'lower',
-            'mean_units' => round($mean, 2),
-        ];
+    $result['available'] = true;
+    $result['low'] = min($totals);
+    $result['high'] = max($totals);
+    $result['average'] = round(array_sum($totals) / count($totals), 1);
+
+    return $result;
+}
+
+function trends_units_between(PDO $pdo, string $from, string $to): int
+{
+    $statement = $pdo->prepare(
+        'SELECT COALESCE(SUM(si.quantity), 0)
+         FROM sale_items si
+         INNER JOIN sales s ON s.id = si.sale_id
+         WHERE s.sold_at >= :from_date AND s.sold_at < :to_date'
+    );
+    $statement->execute([
+        'from_date' => $from . ' 00:00:00',
+        'to_date' => $to . ' 00:00:00',
+    ]);
+
+    return (int) $statement->fetchColumn();
+}
+
+function trends_percent_change(float|int $current, float|int $previous): ?float
+{
+    if ((float) $previous === 0.0) {
+        return null;
     }
 
-    return $unusual;
+    return round((((float) $current - (float) $previous) / (float) $previous) * 100, 1);
+}
+
+/** rising, falling or steady using the constants at the top of this file. */
+function trends_status(int $current, int $previous): string
+{
+    if (abs($current - $previous) < TRENDS_MIN_UNITS) {
+        return 'steady';
+    }
+    if ($previous === 0) {
+        return 'rising';
+    }
+
+    $percent = (($current - $previous) / $previous) * 100;
+    if ($percent >= TRENDS_CHANGE_PERCENT) {
+        return 'rising';
+    }
+    if ($percent <= -TRENDS_CHANGE_PERCENT) {
+        return 'falling';
+    }
+
+    return 'steady';
 }
