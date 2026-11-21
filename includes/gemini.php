@@ -223,7 +223,7 @@ function gemini_generate_insights(PDO $pdo, array $stats, int $userId): array
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 20,
+        CURLOPT_TIMEOUT => 30,
         CURLOPT_SSL_VERIFYPEER => true,
         CURLOPT_SSL_VERIFYHOST => 2,
     ]);
@@ -231,7 +231,7 @@ function gemini_generate_insights(PDO $pdo, array $stats, int $userId): array
     $response = curl_exec($handle);
     $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
     if (!is_string($response) || $status < 200 || $status >= 300) {
-        error_log('Gemini insights: request failed with HTTP status ' . $status . '.');
+        error_log('Gemini insights: request failed with HTTP status ' . $status . ' (' . curl_error($handle) . ').');
         return $failed;
     }
 
