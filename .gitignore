@@ -6,7 +6,7 @@ Thumbs.db
 .vscode/
 config/recaptcha.php
 config/mail.php
-
+config/gemini.php
 # AI instructions and rules (local only)
 AGENTS.md
 docs/
@@ -14,3 +14,4 @@ docs/
 # Not used by the PHP project
 package.json
 package-lock.json
+config/gemini.php
