@@ -19,3 +19,5 @@ identity_service/venv/
 identity_service/__pycache__/
 identity_service/.env
 identity_service/models/
+
+identity_service/debug_*.py

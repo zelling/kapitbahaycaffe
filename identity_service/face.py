@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import os
+
+# Must be set before TensorFlow or DeepFace is imported (RetinaFace needs legacy Keras).
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
 from pathlib import Path
 
 import cv2
-import mediapipe as mp
 import numpy as np
 from deepface import DeepFace
+import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
@@ -19,8 +24,10 @@ SIZE_CLOSE_MIN = 0.52
 SIZE_FAR_MAX = 0.22
 SIZE_OK_MIN = 0.25
 SIZE_OK_MAX = 0.50
-FACE_MODEL = "Facenet512"
-DETECTOR_BACKEND = "opencv"
+MIN_FACE_AREA_RATIO = 0.25
+MIN_FACE_CONFIDENCE = 0.8
+FACE_MODEL = "ArcFace"
+DETECTOR_BACKEND = "retinaface"
 MODEL_PATH = Path(__file__).parent / "models" / "face_landmarker.task"
 
 
@@ -55,17 +62,16 @@ def capture_check(landmarker: vision.FaceLandmarker, image: np.ndarray, pose: st
 
 
 def match_faces(id_image: np.ndarray, selfie: np.ndarray) -> dict:
-    """Compare largest ID face with the single selfie face; no anti-spoofing is performed."""
+    """Compare the ID photo with the single selfie face; no anti-spoofing is performed."""
     id_faces = _clear_faces(id_image)
     selfie_faces = _clear_faces(selfie)
     if not id_faces or len(selfie_faces) != 1:
         return _match_result(len(id_faces), len(selfie_faces), False, None, None,
                              "No clear face found. Please retake the photo.")
-    id_crop = _crop_largest(id_image, id_faces)
-    selfie_crop = _crop_largest(selfie, selfie_faces)
-    result = DeepFace.verify(img1_path=id_crop, img2_path=selfie_crop,
+    # Whole images go in: the detector aligns each face itself (tested working).
+    result = DeepFace.verify(img1_path=id_image, img2_path=selfie,
                              model_name=FACE_MODEL, detector_backend=DETECTOR_BACKEND,
-                             enforce_detection=True)
+                             align=True, enforce_detection=True)
     distance = float(result["distance"])
     threshold = float(result["threshold"])
     verified = distance <= threshold
@@ -112,17 +118,23 @@ def _pose_passes(pose: str, yaw: float, size: float, bounds: tuple[float, float,
 
 
 def _clear_faces(image: np.ndarray) -> list[dict]:
+    """Return real faces only: confident, both eyes found, not tiny next to the largest."""
     faces = DeepFace.extract_faces(img_path=image, detector_backend=DETECTOR_BACKEND,
-                                   enforce_detection=False, align=True)
-    return [face for face in faces if float(face.get("face_confidence", 1.0)) >= 0.8]
-
-
-def _crop_largest(image: np.ndarray, faces: list[dict]) -> np.ndarray:
-    area = lambda face: int(face["facial_area"].get("w", 0)) * int(face["facial_area"].get("h", 0))
-    box = max(faces, key=area)["facial_area"]
-    x, y = max(0, int(box["x"])), max(0, int(box["y"]))
-    w, h = int(box["w"]), int(box["h"])
-    return image[y:y + h, x:x + w]
+                                   enforce_detection=False)
+    kept = []
+    for face in faces:
+        area = face["facial_area"]
+        confidence = float(face.get("confidence", face.get("face_confidence", 1.0)))
+        if confidence < MIN_FACE_CONFIDENCE:
+            continue
+        if not area.get("left_eye") or not area.get("right_eye"):
+            continue
+        kept.append(face)
+    if not kept:
+        return []
+    biggest = max(f["facial_area"]["w"] * f["facial_area"]["h"] for f in kept)
+    return [f for f in kept
+            if f["facial_area"]["w"] * f["facial_area"]["h"] >= MIN_FACE_AREA_RATIO * biggest]
 
 
 def _pose_result(passed: bool, pose: str, yaw: float, size: float, message: str) -> dict:

@@ -6,6 +6,7 @@ from __future__ import annotations
 import hmac
 import logging
 import os
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
 from contextlib import asynccontextmanager
 from datetime import date
 from pathlib import Path
