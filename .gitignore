@@ -15,9 +15,13 @@ docs/
 package.json
 package-lock.json
 config/gemini.php
+config/identity.php
 identity_service/venv/
 identity_service/__pycache__/
 identity_service/.env
 identity_service/models/
 
 identity_service/debug_*.py
+identity_service/selfie.jpg
+identity_service/sample_id.jpg
+identity_service/Debug (DONT_TOUCH)/
