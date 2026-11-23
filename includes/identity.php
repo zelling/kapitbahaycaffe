@@ -35,7 +35,8 @@ function identity_call(string $path, array $files, array $fields): array
         return identity_service_unavailable($path, 0);
     }
 
-    $headers = ['X-Service-Key: ' . (string) IDENTITY_SERVICE_KEY];
+    // "Expect:" disables the 100-continue handshake, which stalls multipart uploads here.
+    $headers = ['X-Service-Key: ' . (string) IDENTITY_SERVICE_KEY, 'Expect:'];
     curl_setopt($handle, CURLOPT_POST, true);
     curl_setopt($handle, CURLOPT_POSTFIELDS, $payload);
     curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
@@ -46,13 +47,14 @@ function identity_call(string $path, array $files, array $fields): array
     curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 2);
     $response = curl_exec($handle);
     $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
+    $errno = curl_errno($handle);
     if ($response === false || $status < 200 || $status >= 300) {
-        return identity_service_unavailable($path, $status);
+        return identity_service_unavailable($path, $status, $errno);
     }
 
     $decoded = json_decode((string) $response, true);
     if (!is_array($decoded)) {
-        return identity_service_unavailable($path, $status);
+        return identity_service_unavailable($path, $status, $errno);
     }
 
     return $decoded;
@@ -60,6 +62,7 @@ function identity_call(string $path, array $files, array $fields): array
 
 function identity_flow_reset(): void
 {
+    identity_temp_clear();
     $_SESSION['identity_flow'] = ['steps' => array_fill_keys(IDENTITY_FLOW_STEPS, false)];
 }
 
@@ -106,7 +109,63 @@ function identity_step_pass(string $step): void
 
 function identity_flow_clear(): void
 {
+    identity_temp_clear();
     unset($_SESSION['identity_flow']);
+}
+
+function identity_temp_store(string $tmpPath): void
+{
+    identity_temp_clear();
+
+    $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
+    $path = $directory . DIRECTORY_SEPARATOR . 'kb_id_' . bin2hex(random_bytes(16));
+    if (!copy($tmpPath, $path)) {
+        throw new RuntimeException('The uploaded image could not be stored temporarily.');
+    }
+
+    $_SESSION['identity_temp_path'] = $path;
+    $_SESSION['identity_temp_created_at'] = time();
+}
+
+function identity_temp_path(): ?string
+{
+    $path = $_SESSION['identity_temp_path'] ?? null;
+    $createdAt = $_SESSION['identity_temp_created_at'] ?? null;
+    if (!is_string($path) || !is_int($createdAt) || time() - $createdAt > 1800 || !identity_temp_is_managed($path) || !is_file($path)) {
+        identity_temp_clear();
+        return null;
+    }
+
+    return $path;
+}
+
+function identity_temp_clear(): void
+{
+    $path = $_SESSION['identity_temp_path'] ?? null;
+    if (is_string($path) && identity_temp_is_managed($path) && is_file($path)) {
+        unlink($path);
+    }
+
+    unset($_SESSION['identity_temp_path'], $_SESSION['identity_temp_created_at']);
+}
+
+function identity_cleanup_stale(): void
+{
+    $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
+    $paths = glob($directory . DIRECTORY_SEPARATOR . 'kb_id_*') ?: [];
+    foreach ($paths as $path) {
+        if (is_file($path) && filemtime($path) !== false && filemtime($path) < time() - 1800) {
+            unlink($path);
+        }
+    }
+}
+
+function identity_temp_is_managed(string $path): bool
+{
+    $directory = rtrim(str_replace('\\', '/', sys_get_temp_dir()), '/');
+    $candidate = str_replace('\\', '/', $path);
+    return str_starts_with($candidate, $directory . '/kb_id_')
+        && basename($candidate) === basename($path);
 }
 
 function identity_mask_id(string $id): string
@@ -190,10 +249,14 @@ function identity_max_fails_per_day(): int
     return defined('IDENTITY_MAX_FAILS_PER_DAY') ? (int) IDENTITY_MAX_FAILS_PER_DAY : 5;
 }
 
-function identity_service_unavailable(string $path, int $status): array
+function identity_service_unavailable(string $path, int $status, int $errno = 0): array
 {
-    error_log('identity_call path=' . $path . ' status=' . $status);
-    return ['ok' => false, 'message' => 'The identity service is unavailable. Please try again later.'];
+    error_log('identity_call path=' . $path . ' status=' . $status . ' errno=' . $errno);
+    return [
+        'ok' => false,
+        'unavailable' => true,
+        'message' => 'The identity service is unavailable. Please try again later.',
+    ];
 }
 
 function identity_request_skips_gate(): bool
