@@ -18,12 +18,12 @@ from mediapipe.tasks.python import vision
 
 
 # Starting thresholds only; tune these with a real mirrored webcam before release.
-YAW_STRAIGHT_MAX = 0.10
+YAW_STRAIGHT_MAX = 0.12
 YAW_TURN_MIN = 0.18
-SIZE_CLOSE_MIN = 0.52
-SIZE_FAR_MAX = 0.22
-SIZE_OK_MIN = 0.25
-SIZE_OK_MAX = 0.50
+SIZE_CLOSE_MIN = 0.80
+SIZE_FAR_MAX = 0.40
+SIZE_OK_MIN = 0.45
+SIZE_OK_MAX = 0.85
 MIN_FACE_AREA_RATIO = 0.25
 MIN_FACE_CONFIDENCE = 0.8
 FACE_MODEL = "ArcFace"
