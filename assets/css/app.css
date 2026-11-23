@@ -482,3 +482,16 @@
     border-style: solid;
     border-color: #7bd88f;
 }
+
+/* Final identity-verification form and result additions. */
+.app-id-form-fields { display: grid; gap: 15px; }
+.app-id-form-field { color: var(--ink); display: grid; font-size: 11px; font-weight: 700; gap: 6px; }
+.app-id-form-field input,
+.app-id-form-field textarea { background: var(--paper); border: 1px solid var(--line); color: var(--ink); font: inherit; font-weight: 400; padding: 10px; }
+.app-id-form-field textarea { min-height: 84px; resize: vertical; }
+.app-id-field-error { color: #843d2e !important; font-size: 11px !important; margin: -8px 0 0; }
+.app-id-summary-list { display: grid; gap: 0; margin: 0; text-align: left; }
+.app-id-summary-list div { border-bottom: 1px solid var(--line); display: grid; gap: 4px; padding: 10px 0; }
+.app-id-summary-list dt { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.app-id-summary-list dd { color: var(--ink); font-size: 12px; margin: 0; overflow-wrap: anywhere; }
+.app-id-success-box { background: #edf1e8; border: 1px solid var(--sage); color: var(--ink); padding: 16px; }

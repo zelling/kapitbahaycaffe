@@ -48,7 +48,7 @@ function identity_call(string $path, array $files, array $fields): array
     $response = curl_exec($handle);
     $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
     if ($response === false || $status < 200 || $status >= 300) {
-        return identity_service_unavailable($path, $status);
+        return identity_service_unavailable($path, $status, curl_errno($handle));
     }
 
     $decoded = json_decode((string) $response, true);
@@ -291,9 +291,9 @@ function identity_max_fails_per_day(): int
     return defined('IDENTITY_MAX_FAILS_PER_DAY') ? (int) IDENTITY_MAX_FAILS_PER_DAY : 5;
 }
 
-function identity_service_unavailable(string $path, int $status): array
+function identity_service_unavailable(string $path, int $status, int $errno = 0): array
 {
-    error_log('identity_call path=' . $path . ' status=' . $status);
+    error_log('identity_call path=' . $path . ' status=' . $status . ' errno=' . $errno);
     return [
         'ok' => false,
         'unavailable' => true,
@@ -304,14 +304,27 @@ function identity_service_unavailable(string $path, int $status): array
 function identity_request_skips_gate(): bool
 {
     $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
-    $accept = (string) ($_SERVER['HTTP_ACCEPT'] ?? '');
-    if (str_contains($script, '/identity/')) {
-        return true;
+    return str_contains($script, '/identity/')
+        || str_ends_with($script, '/auth/login.php')
+        || str_ends_with($script, '/auth/logout.php');
+}
+
+function identity_age(string $dateOfBirth): ?int
+{
+    $birthDate = DateTimeImmutable::createFromFormat('!Y-m-d', $dateOfBirth);
+    $errors = DateTimeImmutable::getLastErrors();
+    if ($birthDate === false || ($errors !== false && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+        return null;
     }
 
-    if (str_ends_with($script, '/auth/login.php') || str_ends_with($script, '/auth/logout.php')) {
-        return true;
+    if ($birthDate->format('Y-m-d') !== $dateOfBirth || (int) $birthDate->format('Y') < 1900) {
+        return null;
     }
 
-    return str_contains($accept, 'application/json') || str_contains($script, '/api/');
+    $today = new DateTimeImmutable('today');
+    if ($birthDate > $today) {
+        return null;
+    }
+
+    return $birthDate->diff($today)->y;
 }

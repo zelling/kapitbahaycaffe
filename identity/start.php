@@ -71,6 +71,7 @@ require __DIR__ . '/../includes/header.php';
                 <div class="app-id-actions"><button class="primary-button" type="submit">I consent and continue</button></div>
             </form>
         <?php endif; ?>
+        <p><a class="app-cancel-link" href="<?= e(BASE_URL) ?>/identity/limitations.php">Read identity verification limitations</a></p>
     </section>
 </main>
 <?php require __DIR__ . '/../includes/footer.php'; ?>
