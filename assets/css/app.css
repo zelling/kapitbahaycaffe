@@ -330,6 +330,19 @@
 .app-id-details dt { color: var(--muted); }
 .app-id-details dd { color: var(--ink); font-weight: 700; margin: 0; }
 .app-id-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; }
+.app-id-camera { background: #1f2924; border-radius: 4px; overflow: hidden; position: relative; }
+.app-id-camera video { display: block; min-height: 260px; transform: scaleX(-1); width: 100%; }
+.app-id-camera-overlay { align-items: center; background: rgba(20, 31, 25, .28); color: #fff; display: flex; font-family: var(--serif); font-size: 28px; inset: 0; justify-content: center; padding: 24px; position: absolute; text-align: center; }
+.app-id-camera-status { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0; }
+.app-id-canvas { display: none; }
+.app-id-progress { display: grid; gap: 7px; list-style: none; margin: 0; padding: 0; }
+.app-id-progress li { border-left: 3px solid var(--line); color: var(--muted); font-size: 12px; padding: 6px 10px; }
+.app-id-progress li.app-id-progress-current { border-color: var(--terra, var(--terracotta, #bf684c)); color: var(--ink); font-weight: 700; }
+.app-id-progress li.app-id-progress-passed { border-color: #4d6c4c; color: #4d6c4c; }
+.app-id-debug { color: var(--muted); font-size: 11px; margin: 0; }
+.app-id-result-card { text-align: center; }
+.app-id-result-card .app-id-details { text-align: left; }
+@media (max-width: 620px) { .app-id-camera-overlay { font-size: 23px; } .app-id-camera video { min-height: 210px; } }
 @media (max-width: 620px) { .app-id-page { padding: 30px 18px 48px; } .app-id-card { padding: 22px; } .app-id-card h1 { font-size: 31px; } }
 @media (max-width: 480px) {
     .app-dashboard-summary {
@@ -439,4 +452,33 @@
     .app-trends-chart-box {
         height: 240px;
     }
+}
+
+.app-id-camera {
+    position: relative;
+    overflow: hidden;
+}
+
+.app-id-camera-overlay {
+    z-index: 2;
+}
+
+.app-id-guide {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 3px dashed #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.app-id-guide[hidden] {
+    display: none;
+}
+
+.app-id-guide-ok {
+    border-style: solid;
+    border-color: #7bd88f;
 }

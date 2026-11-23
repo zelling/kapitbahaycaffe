@@ -47,14 +47,13 @@ function identity_call(string $path, array $files, array $fields): array
     curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 2);
     $response = curl_exec($handle);
     $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
-    $errno = curl_errno($handle);
     if ($response === false || $status < 200 || $status >= 300) {
-        return identity_service_unavailable($path, $status, $errno);
+        return identity_service_unavailable($path, $status);
     }
 
     $decoded = json_decode((string) $response, true);
     if (!is_array($decoded)) {
-        return identity_service_unavailable($path, $status, $errno);
+        return identity_service_unavailable($path, $status);
     }
 
     return $decoded;
@@ -111,6 +110,49 @@ function identity_flow_clear(): void
 {
     identity_temp_clear();
     unset($_SESSION['identity_flow']);
+}
+
+function identity_steps_reset_from(string $step): void
+{
+    $position = array_search($step, IDENTITY_FLOW_STEPS, true);
+    if ($position === false) {
+        return;
+    }
+
+    identity_flow_get();
+    foreach (array_slice(IDENTITY_FLOW_STEPS, $position) as $flowStep) {
+        $_SESSION['identity_flow']['steps'][$flowStep] = false;
+    }
+
+    if ($step === 'capture') {
+        unset($_SESSION['identity_flow']['capture_poses'], $_SESSION['identity_flow']['capture_checks']);
+    }
+
+    if (array_search($step, IDENTITY_FLOW_STEPS, true) <= array_search('match', IDENTITY_FLOW_STEPS, true)) {
+        unset($_SESSION['identity_flow']['match_result']);
+    }
+}
+
+function identity_pose_order(): array
+{
+    return ['straight', 'left', 'right', 'closer', 'farther'];
+}
+
+function identity_uploaded_frame_call(array $upload, callable $callback): array
+{
+    $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
+    $path = $directory . DIRECTORY_SEPARATOR . 'kb_frame_' . bin2hex(random_bytes(16));
+    if (!copy((string) $upload['tmp_name'], $path)) {
+        throw new RuntimeException('The camera frame could not be prepared.');
+    }
+
+    try {
+        return $callback($path);
+    } finally {
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
 }
 
 function identity_temp_store(string $tmpPath): void
@@ -249,9 +291,9 @@ function identity_max_fails_per_day(): int
     return defined('IDENTITY_MAX_FAILS_PER_DAY') ? (int) IDENTITY_MAX_FAILS_PER_DAY : 5;
 }
 
-function identity_service_unavailable(string $path, int $status, int $errno = 0): array
+function identity_service_unavailable(string $path, int $status): array
 {
-    error_log('identity_call path=' . $path . ' status=' . $status . ' errno=' . $errno);
+    error_log('identity_call path=' . $path . ' status=' . $status);
     return [
         'ok' => false,
         'unavailable' => true,
