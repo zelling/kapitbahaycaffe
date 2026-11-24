@@ -1,5 +1,5 @@
 /* CONTENTS: 01 Tokens, 02 Base, 03 Buttons, 04 Forms, 05 Alerts, 06 Tables,
-07 Cards, 08 Layout, 09 Auth, 10 Owner pages */
+07 Cards, 08 Layout, 09 Auth, 10 Owner pages, 11 Sales */
 /* Application-only additions. Prototype selectors and variables are intentionally untouched. */
 .app-header-inner {
   align-items: center;
@@ -1441,6 +1441,7 @@
   --app-space-4: 16px;
   --app-space-5: 24px;
   --app-space-6: 32px;
+  --app-sticky-offset: 98px; /* owner header 82px plus 16px clearance */
 }
 
 /* ===== 02 BASE ===== */
@@ -1902,5 +1903,389 @@ html {
 @media (max-width: 375px) {
   .app-owner-form {
     min-width: 0;
+  }
+}
+
+/* ===== 11 SALES ===== */
+/* Owner and staff sales pages keep the entry area visually grouped. */
+.app-sales-page {
+  display: grid;
+  gap: var(--app-space-4);
+}
+
+/* Owner and staff sales entry pages keep the final action clear of the page edge. */
+.app-sales-entry {
+  padding-bottom: var(--app-space-6);
+}
+
+/* Owner and staff sales headings retain consistent spacing above feedback. */
+.app-sales-heading {
+  margin-bottom: 0;
+}
+
+/* Owner and staff sales feedback stays directly beneath the page heading. */
+.app-sales-message {
+  margin: 0;
+}
+
+/* Owner and staff sales layouts separate the item picker from the current sale. */
+.app-sales-layout {
+  align-items: start;
+  display: grid;
+  gap: var(--app-space-5);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+}
+
+/* 768px: stack the sale picker and current sale panel. */
+@media (max-width: 768px) {
+  .app-sales-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Owner and staff sale pickers remain contained within the page grid. */
+.app-sales-picker {
+  min-width: 0;
+}
+
+/* Owner and staff sale menus give filtering controls room to breathe. */
+.app-sales-menu {
+  display: grid;
+  gap: var(--app-space-4);
+}
+
+/* Owner and staff category rows wrap without pushing the item grid wider. */
+.app-sales-category-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+  margin: 0;
+}
+
+/* Owner and staff prototype category rows stay within the sales picker. */
+.app-sales-page .category-row {
+  min-width: 0;
+}
+
+/* Owner and staff category controls clearly show the active menu filter. */
+.app-sales-category-control {
+  border: 1px solid var(--app-color-line);
+  border-radius: 999px;
+  min-height: 38px;
+  padding: 8px var(--app-space-3);
+}
+
+/* Owner and staff prototype category pills retain compact filter spacing. */
+.app-sales-page .category-pill {
+  line-height: 1.2;
+}
+
+/* Owner and staff category controls retain a clear selected state. */
+.app-sales-category-control[aria-pressed="true"] {
+  background: var(--app-color-ink);
+  border-color: var(--app-color-ink);
+  color: var(--app-color-paper);
+}
+
+/* 375px: make sale category controls comfortable touch targets. */
+@media (max-width: 375px) {
+  .app-sales-category-control {
+    min-height: 44px;
+  }
+}
+
+/* Owner and staff sale grids keep product cards from overflowing their column. */
+.app-sales-grid {
+  min-width: 0;
+}
+
+/* Owner and staff prototype product grids remain bounded by the picker column. */
+.app-sales-page .product-grid {
+  min-width: 0;
+}
+
+/* Owner and staff sale item cards keep their content grouped within each grid cell. */
+.app-sales-menu-item {
+  min-width: 0;
+}
+
+/* Owner and staff prototype product cards keep long menu names within their cell. */
+.app-sales-page .product-card {
+  min-width: 0;
+}
+
+/* Owner and staff sale cards keep the add action aligned with availability. */
+.app-sales-page .product-bottom {
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+/* Owner and staff sale add actions stay distinct from secondary card content. */
+.app-sales-add-button {
+  min-height: 38px;
+}
+
+/* Owner and staff prototype add buttons remain aligned with the card action. */
+.app-sales-page .add-button {
+  line-height: 1.2;
+}
+
+/* 375px: make sale add actions comfortable touch targets. */
+@media (max-width: 375px) {
+  .app-sales-add-button {
+    min-height: 44px;
+  }
+}
+
+/* Owner and staff empty menu messaging uses the shared empty-state treatment. */
+.app-sales-empty-menu {
+  margin: 0;
+}
+
+/* Owner and staff sale panels stay below owner.css .site-header (line 1). */
+.app-sales-summary {
+  align-self: start;
+  max-height: calc(100dvh - var(--app-sticky-offset) - 16px);
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: sticky;
+  top: var(--app-sticky-offset);
+  z-index: 1;
+}
+
+/* 768px: return the current-sale panel to normal flow below the picker. */
+@media (max-width: 768px) {
+  .app-sales-summary {
+    max-height: none;
+    overflow-y: visible;
+    position: static;
+  }
+}
+
+/* Owner and staff sale forms separate cart content, totals, and the primary action. */
+.app-sales-form {
+  display: grid;
+  gap: var(--app-space-3);
+}
+
+/* Owner and staff sale selections reserve a stable area for dynamic cart rows. */
+.app-sales-selection {
+  min-width: 0;
+}
+
+/* Owner and staff cart containers keep dynamically generated rows vertically grouped. */
+.app-sale-items {
+  display: grid;
+  gap: var(--app-space-2);
+}
+
+/* Owner and staff cart rows keep item details, totals, and controls readable. */
+.app-sale-line {
+  align-items: center;
+  border-bottom: 1px solid var(--app-color-line);
+  display: grid;
+  gap: var(--app-space-2);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding-bottom: var(--app-space-2);
+}
+
+/* Owner and staff cart line totals align amounts consistently. */
+.app-sale-line > strong {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Owner and staff cart controls sit below the item total without crowding it. */
+.app-sale-line-actions {
+  display: flex;
+  gap: var(--app-space-2);
+  grid-column: 1 / -1;
+  justify-content: space-between;
+}
+
+/* Owner and staff quantity steppers keep their controls aligned and touchable. */
+.app-sale-stepper {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--app-space-1);
+}
+
+/* Owner and staff quantity buttons provide a comfortable compact target. */
+.app-sale-stepper button {
+  min-height: 38px;
+  min-width: 38px;
+  text-align: center;
+}
+
+/* Owner and staff quantity output aligns changing values without visual jitter. */
+.app-sale-stepper output {
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  text-align: center;
+}
+
+/* Owner and staff remove actions remain visually secondary to quantity controls. */
+.app-sale-remove {
+  background: transparent;
+  border: 0;
+  color: var(--app-color-error);
+  font: inherit;
+  font-weight: 700;
+  min-height: 38px;
+  padding: 8px;
+}
+
+/* 375px: enlarge quantity and remove controls for reliable touch input. */
+@media (max-width: 375px) {
+  .app-sale-stepper button,
+  .app-sale-remove {
+    min-height: 44px;
+  }
+
+  .app-sale-stepper button {
+    min-width: 44px;
+  }
+}
+
+/* Owner and staff empty-cart copy remains readable before the first selection. */
+.app-sale-empty {
+  color: var(--app-color-muted);
+  margin: 0;
+}
+
+/* Owner and staff empty-cart copy stays visually distinct from the cart controls. */
+.app-sales-empty-copy {
+  line-height: 1.5;
+}
+
+/* Owner and staff quantity guidance appears directly below the selected items. */
+.app-sales-quantity-helper {
+  color: var(--app-color-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Owner and staff sale totals align the label and currency value. */
+.app-sale-total {
+  align-items: baseline;
+  border-top: 1px solid var(--app-color-line);
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--app-space-3);
+}
+
+/* Owner and staff total summaries retain a stable width inside the current-sale panel. */
+.app-sales-total-summary {
+  min-width: 0;
+}
+
+/* Owner and staff total values remain prominent and right aligned. */
+.app-sales-total-value {
+  color: var(--app-color-ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Owner and staff record-sale buttons span the summary panel as the primary action. */
+.app-record-sale-button {
+  width: 100%;
+}
+
+/* Owner and staff disabled record-sale buttons show that a selection is required. */
+.app-record-sale-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* 720px: override .app-sales-layout at line 1932 for a tablet cart column. */
+@media (min-width: 720px) {
+  .app-sales-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  }
+
+  /* Override .app-sales-summary at line 2046 for the viewport-bounded cart. */
+  .app-sales-summary {
+    max-height: calc(100dvh - var(--app-sticky-offset) - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    position: sticky;
+    top: var(--app-sticky-offset);
+    z-index: 1;
+  }
+}
+
+/* 720px to 1023px: override .app-sales-grid at line 1998 for portrait tablets. */
+@media (min-width: 720px) and (max-width: 1023px) {
+  .app-sales-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 1024px: override .app-sales-grid at line 1998 for wide sales pages. */
+@media (min-width: 1024px) {
+  .app-sales-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* 719px: pin the cart to the bottom while preserving its menu-first DOM order. */
+@media (max-width: 719px) {
+  /* Override .app-sales-menu at line 1947 so final menu cards clear the pinned cart. */
+  .app-sales-menu {
+    padding-bottom: calc(45dvh + var(--app-space-5));
+  }
+
+  /* Override .app-sales-summary at line 2046 for the phone cart tray. */
+  .app-sales-summary {
+    background: var(--app-color-paper);
+    border-top: 1px solid var(--app-color-line);
+    bottom: 0;
+    box-shadow: var(--app-shadow-card);
+    box-sizing: border-box;
+    max-height: 45dvh;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    padding: var(--app-space-3) var(--app-space-4)
+      calc(var(--app-space-3) + env(safe-area-inset-bottom));
+    position: sticky;
+    top: auto;
+    z-index: 1;
+  }
+
+  /* Keep the current-sale heading available to assistive technology on phones. */
+  .app-sales-summary .app-sale-panel-heading {
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  /* Override .app-sales-selection at line 2073 for a scrollable phone item list. */
+  .app-sales-selection,
+  .app-sale-items {
+    max-height: 24dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Hide nonessential quantity guidance while the phone cart tray is compact. */
+  .app-sales-quantity-helper {
+    display: none;
+  }
+
+  /* Keep all interactive phone cart controls at the minimum touch target size. */
+  .app-sales-add-button,
+  .app-sale-stepper button,
+  .app-sale-remove,
+  .app-record-sale-button {
+    min-height: 44px;
   }
 }

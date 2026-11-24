@@ -121,45 +121,46 @@ $message = (string) ($_SESSION['sales_message'] ?? '');
 $messageType = (string) ($_SESSION['sales_message_type'] ?? 'success');
 unset($_SESSION['sales_message'], $_SESSION['sales_message_type']);
 ?>
-<main class="app-owner-page app-sales-page">
-    <div class="menu-heading">
+<main class="app-owner-page app-sales-page app-sales-entry">
+    <div class="menu-heading app-page-heading app-sales-heading">
         <div><span class="eyebrow">SALES LOG</span><h2>Record a sale<span>.</span></h2></div>
     </div>
     <?php if ($message !== ''): ?>
-        <p class="app-message <?= $messageType === 'error' ? 'app-message-error' : 'app-message-success' ?>" role="alert"><?= e($message) ?></p>
+        <p class="app-message app-sales-message <?= $messageType === 'error' ? 'app-message-error' : 'app-message-success' ?>" role="alert"><?= e($message) ?></p>
     <?php endif; ?>
     <div class="app-sales-layout">
-        <section class="app-sales-menu" aria-labelledby="sale-menu-heading">
+        <section class="app-sales-menu app-sales-picker" aria-labelledby="sale-menu-heading">
             <h3 id="sale-menu-heading" class="app-visually-hidden">Available menu items</h3>
-            <nav class="category-row" aria-label="Filter menu categories">
-                <button class="category-pill active" type="button" data-category-filter="all" aria-pressed="true">Everything</button>
+            <nav class="category-row app-sales-category-row" aria-label="Filter menu categories">
+                <button class="category-pill app-sales-category-control active" type="button" data-category-filter="all" aria-pressed="true">Everything</button>
                 <?php foreach ($categories as $categoryId => $categoryName): ?>
-                    <button class="category-pill" type="button" data-category-filter="<?= (int) $categoryId ?>" aria-pressed="false"><?= e($categoryName) ?></button>
+                    <button class="category-pill app-sales-category-control" type="button" data-category-filter="<?= (int) $categoryId ?>" aria-pressed="false"><?= e($categoryName) ?></button>
                 <?php endforeach; ?>
             </nav>
-            <div class="product-grid" id="sale-menu-grid">
+            <div class="product-grid app-sales-grid" id="sale-menu-grid">
                 <?php foreach ($menuItems as $menuItem): ?>
-                    <article class="product-card" data-category-id="<?= (int) $menuItem['category_id'] ?>">
+                    <article class="product-card app-sales-menu-item" data-category-id="<?= (int) $menuItem['category_id'] ?>">
                         <div class="product-photo app-sales-photo"<?php if (!empty($menuItem['image_url'])): ?> style="background-image: url('<?= e((string) $menuItem['image_url']) ?>')"<?php endif; ?>><span class="product-tag"><?= e((string) $menuItem['category_name']) ?></span></div>
                         <div class="product-body">
                             <div class="product-title-row"><h3><?= e((string) $menuItem['name']) ?></h3><span class="product-price"><?= e(peso((string) $menuItem['price'])) ?></span></div>
                             <p><?= e((string) ($menuItem['description'] ?: 'Made fresh for the sale log.')) ?></p>
-                            <div class="product-bottom"><small>Available</small><button class="add-button" type="button" data-add-item data-item-id="<?= (int) $menuItem['id'] ?>" data-item-name="<?= e((string) $menuItem['name']) ?>" data-item-price="<?= e((string) $menuItem['price']) ?>">Add</button></div>
+                            <div class="product-bottom"><small>Available</small><button class="add-button app-sales-add-button" type="button" data-add-item data-item-id="<?= (int) $menuItem['id'] ?>" data-item-name="<?= e((string) $menuItem['name']) ?>" data-item-price="<?= e((string) $menuItem['price']) ?>">Add</button></div>
                         </div>
                     </article>
                 <?php endforeach; ?>
             </div>
-            <?php if ($menuItems === []): ?><p class="app-sales-empty-menu">No menu items are available to record.</p><?php endif; ?>
+            <?php if ($menuItems === []): ?><p class="app-sales-empty-menu app-empty-state">No menu items are available to record.</p><?php endif; ?>
         </section>
-        <aside class="app-sale-panel" aria-labelledby="sale-list-heading">
+        <aside class="app-sale-panel app-sales-summary" aria-labelledby="sale-list-heading">
             <div class="app-sale-panel-heading"><div><span class="eyebrow">CURRENT SALE</span><h3 id="sale-list-heading">Selected items<span>.</span></h3></div></div>
-            <form method="post" id="sale-form">
+            <form method="post" id="sale-form" class="app-sales-form">
                 <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-                <div id="sale-items" class="app-sale-items" aria-live="polite"></div>
-                <p id="sale-empty" class="app-sale-empty">Choose menu items to start a sale.</p>
+                <div id="sale-items" class="app-sale-items app-sales-selection" aria-live="polite"></div>
+                <p id="sale-empty" class="app-sale-empty app-sales-empty-copy">Choose menu items to start a sale.</p>
+                <p class="app-sales-quantity-helper">Use the minus and plus controls to adjust each quantity.</p>
                 <div id="sale-hidden-items"></div>
-                <div class="app-sale-total"><span>Total</span><strong id="sale-total"><?= e(peso('0')) ?></strong></div>
-                <button id="record-sale-button" class="primary-button app-record-sale-button" type="submit" disabled>Record sale</button>
+                <div class="app-sale-total app-sales-total-summary"><span>Total</span><strong id="sale-total" class="app-sales-total-value"><?= e(peso('0')) ?></strong></div>
+                <button id="record-sale-button" class="primary-button app-record-sale-button app-btn-primary" type="submit" disabled>Record sale</button>
             </form>
         </aside>
     </div>
