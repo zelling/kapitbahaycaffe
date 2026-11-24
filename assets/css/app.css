@@ -1,5 +1,5 @@
 /* CONTENTS: 01 Tokens, 02 Base, 03 Buttons, 04 Forms, 05 Alerts, 06 Tables,
-07 Cards, 08 Layout */
+07 Cards, 08 Layout, 09 Auth */
 /* Application-only additions. Prototype selectors and variables are intentionally untouched. */
 .app-header-inner {
   align-items: center;
@@ -1772,6 +1772,27 @@
   }
 }
 
+/* Nav links stay on one line so the active underline never changes height. */
+/* Fixes RECORD SALE wrapping on pages that have a vertical scrollbar. */
+.app-navigation-link {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* 769px to 1440px: tighten link padding so all eight links fit on one row. */
+/* The 760px and 375px rules keep their own padding. */
+@media (min-width: 769px) and (max-width: 1440px) {
+  .app-navigation-link {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+}
+
+/* Reserve scrollbar space so content does not shift between short and long pages. */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* 375px: keep the primary navigation and page headings readable. */
 @media (max-width: 375px) {
   .app-navigation-link {
@@ -1782,5 +1803,49 @@
   .app-page-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+/* ===== 09 AUTH ===== */
+/* Login form sizing keeps staff authentication content within its panel. */
+.app-auth-form {
+  min-width: 0;
+}
+
+/* Login fields preserve the staff form look while avoiding narrow-width overflow. */
+.app-auth-field input {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Login errors remain adjacent to the fields with a readable error treatment. */
+.app-auth-error {
+  background: var(--app-color-error-surface);
+  border-left: 3px solid var(--app-color-error);
+  border-radius: var(--app-radius-control);
+  color: var(--app-color-error);
+  padding: var(--app-space-2) var(--app-space-3);
+}
+
+/* Login submission keeps a touch-sized control without changing prototype button styles. */
+.app-auth-submit {
+  min-height: 44px;
+}
+
+/* reCAPTCHA stays bounded by the login form at narrow widths. */
+.app-recaptcha {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* 374px: scale the fixed-width reCAPTCHA box to fit the staff login panel. */
+@media (max-width: 374px) {
+  .app-recaptcha {
+    min-height: 69px;
+  }
+
+  .app-recaptcha .g-recaptcha {
+    transform: scale(0.88);
+    transform-origin: left top;
   }
 }

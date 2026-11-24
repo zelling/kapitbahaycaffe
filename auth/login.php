@@ -131,15 +131,15 @@ require __DIR__ . '/../includes/header.php';
         <div class="auth-mobile-brand"><a class="brand" href="<?= e(BASE_URL) ?>/auth/login.php"><span class="brand-mark"><i data-lucide="coffee"></i></span><span>kapetbahay<span class="brand-dot">.</span><small>TEAM ROOM</small></span></a></div>
         <div class="auth-form-wrap">
             <div class="auth-heading"><span class="eyebrow">GOOD TO SEE YOU AGAIN</span><h2>Welcome back<span>.</span></h2><p>Sign in to your crew account to pick up where you left off.</p></div>
-        <form method="post" class="app-login-form" novalidate>
+        <form method="post" class="app-login-form app-auth-form" novalidate>
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
-            <label class="field-label" for="email">Email address<input id="email" name="email" type="email" autocomplete="username" placeholder="@gmail.com" required value="<?= e($_POST['email'] ?? '') ?>"></label>
-            <label class="field-label" for="password">Password<input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required></label>
+            <label class="field-label app-auth-field" for="email">Email address<input id="email" name="email" type="email" autocomplete="username" placeholder="@gmail.com" required value="<?= e($_POST['email'] ?? '') ?>"></label>
+            <label class="field-label app-auth-field" for="password">Password<input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required></label>
             <?php if ($recaptcha_enabled): ?>
                 <div class="app-recaptcha"><div class="g-recaptcha" data-sitekey="<?= e(RECAPTCHA_SITE_KEY) ?>"></div></div>
             <?php endif; ?>
-            <?php if ($error !== ''): ?><p class="app-form-error" role="alert"><?= e($error) ?></p><?php endif; ?>
-            <button class="primary-button auth-submit" type="submit">Sign in <i data-lucide="arrow-up-right"></i></button>
+            <?php if ($error !== ''): ?><p class="app-form-error app-auth-error" role="alert"><?= e($error) ?></p><?php endif; ?>
+            <button class="primary-button auth-submit app-auth-submit" type="submit">Sign in <i data-lucide="arrow-up-right"></i></button>
         </form>
         <p class="auth-footnote"><i data-lucide="lock-keyhole"></i> Staff and owner access only.</p>
         </div>
