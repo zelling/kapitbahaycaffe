@@ -1772,6 +1772,15 @@
   }
 }
 
+/* Header focus rings stay visible inside the scrolling navigation container. */
+/* overrides app.css .app-navigation-link:focus-visible outline offset */
+.app-header-brand:focus-visible,
+.app-navigation-link:focus-visible {
+  border-radius: var(--app-radius-control);
+  outline: 2px solid var(--app-color-terracotta);
+  outline-offset: -2px;
+}
+
 /* Nav links stay on one line so the active underline never changes height. */
 /* Fixes RECORD SALE wrapping on pages that have a vertical scrollbar. */
 .app-navigation-link {

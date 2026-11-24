@@ -37,7 +37,7 @@ $current_path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 <?php if ($viewer !== null): ?>
 <header class="site-header">
     <div class="app-header-inner">
-        <a class="brand" href="<?= e(BASE_URL) ?>/index.php" aria-label="KapetBahay home"><span class="brand-mark"><i data-lucide="coffee" aria-hidden="true"></i></span><span>kapetbahay<span class="brand-dot">.</span><small>COFFEE &amp; COMPANY</small></span></a>
+        <a class="brand app-header-brand" href="<?= e(BASE_URL) ?>/index.php" aria-label="KapetBahay home"><span class="brand-mark"><i data-lucide="coffee" aria-hidden="true"></i></span><span>kapetbahay<span class="brand-dot">.</span><small>COFFEE &amp; COMPANY</small></span></a>
         <nav class="app-navigation" aria-label="Primary navigation">
             <?php foreach ($navigation as $item): ?>
                 <?php if (in_array($viewer['role'], $item['roles'], true)): ?>
