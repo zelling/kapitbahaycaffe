@@ -55,7 +55,7 @@ $page_title = 'Dashboard';
 $theme = 'owner';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-owner-page app-dashboard-page">
+<main class="app-owner-page app-dashboard-page app-owner-dashboard">
     <section class="app-dashboard-header-panel" aria-label="Dashboard date range">
         <div class="menu-heading app-dashboard-heading">
             <div>
@@ -100,7 +100,7 @@ require __DIR__ . '/../includes/header.php';
                 <article class="app-dashboard-panel app-dashboard-best-least"><h4>Best and least sold</h4><p><span>Best</span><strong><?= e((string) ($products['best']['name'] ?? 'No sales yet')) ?></strong></p><p><span>Least</span><strong><?= e((string) ($products['least']['name'] ?? 'No items yet')) ?></strong></p></article>
             </div>
         <?php endif; ?>
-        <div class="app-dashboard-table-wrap"><table class="app-table"><thead><tr><th>Menu item</th><th>Units</th><th>Revenue</th><th>Performance</th></tr></thead><tbody><?php if (!$hasSales): ?><tr><td colspan="4">No sales were recorded for this range.</td></tr><?php else: ?><?php foreach ($products['items'] as $item): ?><tr><td><?= e((string) $item['name']) ?></td><td><?= (int) $item['units'] ?></td><td><?= e(peso((float) $item['revenue'])) ?></td><td><span class="app-performance-badge app-performance-<?= e((string) $item['performance']) ?>"><?= e(ucfirst((string) $item['performance'])) ?></span></td></tr><?php endforeach; ?><?php endif; ?></tbody></table></div>
+        <div class="app-dashboard-table-wrap"><table class="app-table app-owner-table"><thead><tr><th>Menu item</th><th class="app-number">Units</th><th class="app-number">Revenue</th><th>Performance</th></tr></thead><tbody><?php if (!$hasSales): ?><tr><td colspan="4">No sales were recorded for this range.</td></tr><?php else: ?><?php foreach ($products['items'] as $item): ?><tr><td><?= e((string) $item['name']) ?></td><td class="app-number"><?= (int) $item['units'] ?></td><td class="app-number"><?= e(peso((float) $item['revenue'])) ?></td><td><span class="app-performance-badge app-performance-<?= e((string) $item['performance']) ?>"><?= e(ucfirst((string) $item['performance'])) ?></span></td></tr><?php endforeach; ?><?php endif; ?></tbody></table></div>
     </section>
 
     <section class="app-dashboard-section" aria-labelledby="sales-charts-heading">
@@ -150,7 +150,10 @@ require __DIR__ . '/../includes/header.php';
 
     <section class="app-dashboard-section" aria-labelledby="stock-heading">
         <div class="app-dashboard-section-heading"><span class="eyebrow">REMAINING STOCK</span><h3 id="stock-heading">Estimated on hand<span>.</span></h3></div>
-        <div class="app-dashboard-table-wrap"><table class="app-table app-stock-table"><thead><tr><th>Ingredient</th><th>Remaining</th><th>Minimum</th><th>Status</th></tr></thead><tbody><?php foreach ($ingredients['remaining'] as $item): ?><tr><td><?= e((string) $item['name']) ?><?php if ($item['negative']): ?><small class="app-negative-note">Check stock count</small><?php endif; ?></td><td><?= e((string) $item['remaining']) ?> <?= e((string) $item['unit']) ?></td><td><?= e((string) $item['min_stock_level']) ?> <?= e((string) $item['unit']) ?></td><td><span class="app-stock-badge app-stock-<?= e((string) $item['status']) ?><?= $item['status'] === 'low' ? ' app-low-badge' : '' ?>"><?= e(ucfirst((string) $item['status'])) ?></span></td></tr><?php endforeach; ?></tbody></table></div>
+        <div class="app-dashboard-table-wrap"><table class="app-table app-stock-table app-owner-table"><thead><tr><th>Ingredient</th><th class="app-number">Remaining</th><th class="app-number">Minimum</th><th>Status</th></tr></thead><tbody><?php foreach ($ingredients['remaining'] as $item): ?><tr><td><?= e((string) $item['name']) ?><?php if ($item['negative']): ?><small class="app-negative-note">Check stock count</small><?php endif; ?></td><td class="app-number"><?= e((string) $item['remaining']) ?> <?= e((string) $item['unit']) ?></td><td class="app-number"><?= e((string) $item['min_stock_level']) ?> <?= e((string) $item['unit']) ?></td><td><span class="app-stock-badge app-stock-<?= e((string) $item['status']) ?><?= $item['status'] === 'low' ? ' app-low-badge' : '' ?>"><?= e(ucfirst((string) $item['status'])) ?></span></td></tr><?php endforeach; ?></tbody></table></div>
+        <?php if ($ingredients['remaining'] === []): ?>
+            <p class="app-empty-state app-owner-empty">No stock records are available.</p>
+        <?php endif; ?>
         <p class="app-dashboard-note">Remaining stock is an estimate from recorded sales and the recipes entered. It does not depend on the date filter.</p>
     </section>
 

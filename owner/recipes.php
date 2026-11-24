@@ -115,7 +115,7 @@ $page_title = 'Recipes';
 $theme = 'owner';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-owner-page">
+<main class="app-owner-page app-owner-recipes">
     <div class="app-page-heading">
         <div>
             <p class="eyebrow">Owner tools</p>
@@ -130,7 +130,7 @@ require __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 
     <section class="app-admin-grid">
-        <form method="post" class="app-form-card">
+        <form method="post" class="app-form-card app-owner-form">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="action" value="<?= $edit ? 'edit' : 'add' ?>">
             <?php if ($edit): ?>
@@ -140,7 +140,7 @@ require __DIR__ . '/../includes/header.php';
             <h2><?= $edit ? 'Edit recipe row' : 'Add recipe row' ?></h2>
 
             <?php if (!empty($_SESSION['form_error'])): ?>
-                <p class="app-form-error">
+                <p class="app-form-error app-owner-form-error" role="alert">
                     <?= e((string) $_SESSION['form_error']); unset($_SESSION['form_error']); ?>
                 </p>
             <?php endif; ?>
@@ -171,12 +171,12 @@ require __DIR__ . '/../includes/header.php';
                 <input name="qty_per_item" type="number" min="0.001" step="0.001" required value="<?= e((string) ($edit['qty_per_item'] ?? '')) ?>">
             </label>
 
-            <button class="primary-button">Save recipe row</button>
+            <button class="primary-button app-btn-primary">Save recipe row</button>
         </form>
 
-        <section class="app-list-card">
-            <div class="app-table-wrap">
-                <table class="app-table">
+        <section class="app-list-card app-owner-list">
+            <div class="app-table-wrap app-table-scroll">
+                <table class="app-table app-owner-table">
                     <thead>
                         <tr>
                             <th>Menu item</th>
@@ -193,7 +193,7 @@ require __DIR__ . '/../includes/header.php';
                                     <?= e((string) $row['ingredient_name']) ?>
                                     <small><?= e((string) $row['unit']) ?></small>
                                 </td>
-                                <td><?= e((string) $row['qty_per_item']) ?></td>
+                                <td class="app-number"><?= e((string) $row['qty_per_item']) ?></td>
                                 <td>
                                     <a class="app-table-link" href="?edit=<?= (int) $row['id'] ?>">Edit</a>
                                     <form method="post" class="app-inline-form">
@@ -208,6 +208,9 @@ require __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php if ($rows === []): ?>
+                <p class="app-empty-state app-owner-empty">No recipe rows are available.</p>
+            <?php endif; ?>
         </section>
     </section>
 </main>

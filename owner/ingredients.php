@@ -90,7 +90,7 @@ $page_title = 'Ingredients';
 $theme = 'owner';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-owner-page">
+<main class="app-owner-page app-owner-ingredients">
     <div class="app-page-heading">
         <div>
             <p class="eyebrow">Owner tools</p>
@@ -107,7 +107,7 @@ require __DIR__ . '/../includes/header.php';
 
     <section class="app-admin-grid">
         <!-- Add / edit form -->
-        <form method="post" class="app-form-card">
+        <form method="post" class="app-form-card app-owner-form">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="action" value="<?= $editing ? 'edit' : 'add' ?>">
             <?php if ($editing): ?>
@@ -117,7 +117,7 @@ require __DIR__ . '/../includes/header.php';
             <h2><?= $editing ? 'Edit ingredient' : 'Add ingredient' ?></h2>
 
             <?php if (!empty($_SESSION['form_error'])): ?>
-                <p class="app-form-error"><?= e((string) $_SESSION['form_error']); unset($_SESSION['form_error']); ?></p>
+                <p class="app-form-error app-owner-form-error" role="alert"><?= e((string) $_SESSION['form_error']); unset($_SESSION['form_error']); ?></p>
             <?php endif; ?>
 
             <label class="app-field">Name
@@ -133,17 +133,17 @@ require __DIR__ . '/../includes/header.php';
                 <input name="min_stock_level" type="number" min="0" step="0.001" required value="<?= e((string) ($editing['min_stock_level'] ?? '')) ?>">
             </label>
 
-            <button class="primary-button" type="submit"><?= $editing ? 'Save changes' : 'Add ingredient' ?></button>
+            <button class="primary-button app-btn-primary" type="submit"><?= $editing ? 'Save changes' : 'Add ingredient' ?></button>
             <?php if ($editing): ?>
                 <a class="app-cancel-link" href="<?= e(BASE_URL) ?>/owner/ingredients.php">Cancel</a>
             <?php endif; ?>
         </form>
 
         <!-- Stock list -->
-        <section class="app-list-card">
+        <section class="app-list-card app-owner-list">
             <h2>Stock list</h2>
-            <div class="app-table-wrap">
-                <table class="app-table">
+            <div class="app-table-wrap app-table-scroll">
+                <table class="app-table app-owner-table">
                     <thead>
                         <tr>
                             <th>Ingredient</th>
@@ -158,10 +158,10 @@ require __DIR__ . '/../includes/header.php';
                             <?php $low = (float) $row['stock_qty'] <= (float) $row['min_stock_level']; ?>
                             <tr>
                                 <td><?= e($row['name']) ?><small><?= e($row['unit']) ?></small></td>
-                                <td><?= e((string) $row['stock_qty']) ?></td>
-                                <td><?= e((string) $row['min_stock_level']) ?></td>
+                                <td class="app-number"><?= e((string) $row['stock_qty']) ?></td>
+                                <td class="app-number"><?= e((string) $row['min_stock_level']) ?></td>
                                 <td>
-                                    <span class="app-status-badge<?= $low ? ' app-low-badge' : '' ?>">
+                                    <span class="app-status-badge app-stock-badge<?= $low ? ' app-low-badge app-stock-low' : ($row['is_archived'] ? '' : ' app-stock-ok') ?>">
                                         <?= $row['is_archived'] ? 'Archived' : ($low ? 'Low stock' : 'Healthy') ?>
                                     </span>
                                 </td>
@@ -179,6 +179,9 @@ require __DIR__ . '/../includes/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php if ($rows === []): ?>
+                <p class="app-empty-state app-owner-empty">No ingredients are available.</p>
+            <?php endif; ?>
         </section>
     </section>
 </main>

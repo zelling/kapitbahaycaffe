@@ -21,7 +21,7 @@ require __DIR__ . '/../includes/header.php';
 ?>
 <main
     id="app-trends"
-    class="app-owner-page app-dashboard-page app-trends-page"
+    class="app-owner-page app-dashboard-page app-trends-page app-owner-trends"
     data-api-url="<?= e(BASE_URL) ?>/analytics/trends_api.php"
     data-csrf="<?= e(csrf_token()) ?>"
     data-gemini="<?= $geminiAvailable ? '1' : '0' ?>"
@@ -71,7 +71,7 @@ require __DIR__ . '/../includes/header.php';
             <h3 id="app-trends-items-heading">Menu item movement<span>.</span></h3>
         </div>
         <div id="app-trends-table" class="app-dashboard-table-wrap app-trends-table-wrap">
-            <table class="app-table">
+            <table class="app-table app-owner-table">
                 <thead>
                     <tr>
                         <th>Item</th>

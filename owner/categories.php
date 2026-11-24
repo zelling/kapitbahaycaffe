@@ -70,24 +70,24 @@ $page_title = 'Categories';
 $theme = 'owner';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-owner-page">
+<main class="app-owner-page app-owner-categories">
     <div class="app-page-heading">
         <div><p class="eyebrow">Owner tools</p><h1>Categories<span>.</span></h1></div>
         <a class="app-toggle-link" href="<?= e(BASE_URL) ?>/owner/categories.php<?= $archived ? '' : '?archived=1' ?>"><?= $archived ? 'Hide archived' : 'Show archived' ?></a>
     </div>
     <?php if (!empty($_SESSION['flash'])): ?><p class="app-message app-message-success"><?= e((string) $_SESSION['flash']); unset($_SESSION['flash']); ?></p><?php endif; ?>
     <section class="app-admin-grid">
-        <form method="post" class="app-form-card">
+        <form method="post" class="app-form-card app-owner-form">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="action" value="<?= $editing ? 'edit' : 'add' ?>">
             <?php if ($editing): ?><input type="hidden" name="id" value="<?= (int) $editing['id'] ?>"><?php endif; ?>
             <h2><?= $editing ? 'Edit category' : 'Add category' ?></h2>
-            <?php if (!empty($_SESSION['form_error'])): ?><p class="app-form-error"><?= e((string) $_SESSION['form_error']); unset($_SESSION['form_error']); ?></p><?php endif; ?>
+            <?php if (!empty($_SESSION['form_error'])): ?><p class="app-form-error app-owner-form-error" role="alert"><?= e((string) $_SESSION['form_error']); unset($_SESSION['form_error']); ?></p><?php endif; ?>
             <label class="app-field">Name<input name="name" required maxlength="100" value="<?= e($editing['name'] ?? '') ?>"></label>
-            <button class="primary-button" type="submit"><?= $editing ? 'Save changes' : 'Add category' ?></button>
+            <button class="primary-button app-btn-primary" type="submit"><?= $editing ? 'Save changes' : 'Add category' ?></button>
             <?php if ($editing): ?><a class="app-cancel-link" href="<?= e(BASE_URL) ?>/owner/categories.php">Cancel</a><?php endif; ?>
         </form>
-        <section class="app-list-card"><h2>All categories</h2><div class="app-table-wrap"><table class="app-table"><thead><tr><th>Name</th><th>Status</th><th>Actions</th></tr></thead><tbody><?php foreach ($rows as $row): ?><tr><td><?= e($row['name']) ?></td><td><span class="app-status-badge"><?= $row['is_archived'] ? 'Archived' : 'Active' ?></span></td><td><a class="app-table-link" href="?edit=<?= (int) $row['id'] ?>">Edit</a><form method="post" class="app-inline-form"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="<?= $row['is_archived'] ? 'restore' : 'archive' ?>"><button class="app-table-link" type="submit"><?= $row['is_archived'] ? 'Restore' : 'Archive' ?></button></form></td></tr><?php endforeach; ?></tbody></table></div></section>
+        <section class="app-list-card app-owner-list"><h2>All categories</h2><div class="app-table-wrap app-table-scroll"><table class="app-table app-owner-table"><thead><tr><th>Name</th><th>Status</th><th>Actions</th></tr></thead><tbody><?php foreach ($rows as $row): ?><tr><td><?= e($row['name']) ?></td><td><span class="app-status-badge"><?= $row['is_archived'] ? 'Archived' : 'Active' ?></span></td><td><a class="app-table-link" href="?edit=<?= (int) $row['id'] ?>">Edit</a><form method="post" class="app-inline-form"><input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="<?= $row['is_archived'] ? 'restore' : 'archive' ?>"><button class="app-table-link" type="submit"><?= $row['is_archived'] ? 'Restore' : 'Archive' ?></button></form></td></tr><?php endforeach; ?></tbody></table></div><?php if ($rows === []): ?><p class="app-empty-state app-owner-empty">No categories are available.</p><?php endif; ?></section>
     </section>
 </main>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

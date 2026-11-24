@@ -1,5 +1,5 @@
 /* CONTENTS: 01 Tokens, 02 Base, 03 Buttons, 04 Forms, 05 Alerts, 06 Tables,
-07 Cards, 08 Layout, 09 Auth */
+07 Cards, 08 Layout, 09 Auth, 10 Owner pages */
 /* Application-only additions. Prototype selectors and variables are intentionally untouched. */
 .app-header-inner {
   align-items: center;
@@ -1847,5 +1847,51 @@ html {
   .app-recaptcha .g-recaptcha {
     transform: scale(0.88);
     transform-origin: left top;
+  }
+}
+
+/* ===== 10 OWNER PAGES ===== */
+/* Categories, menu, ingredients, and recipes forms keep actions easy to find. */
+.app-owner-form {
+  min-width: 0;
+}
+
+.app-owner-form .app-btn-primary {
+  width: 100%;
+}
+
+/* Categories, menu, ingredients, and recipes errors remain aligned with their forms. */
+.app-owner-form-error {
+  margin: 0;
+}
+
+/* Owner page lists retain a bounded width beside their management forms. */
+.app-owner-list {
+  min-width: 0;
+}
+
+.app-owner-list .app-table-wrap {
+  margin-top: var(--app-space-3);
+}
+
+/* Owner page empty states remain readable below tables and menu item grids. */
+.app-owner-list .app-empty-state {
+  margin: var(--app-space-3) 0 0;
+  max-width: none;
+}
+
+/* Owner data tables keep numeric values aligned and scroll within their own wrapper. */
+.app-owner-table {
+  min-width: 560px;
+}
+
+.app-owner-table .app-number {
+  text-align: right;
+}
+
+/* 375px: keep owner form controls and their action buttons within the page width. */
+@media (max-width: 375px) {
+  .app-owner-form {
+    min-width: 0;
   }
 }
