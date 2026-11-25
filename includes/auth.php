@@ -48,11 +48,21 @@ function require_role(string $role): void
     http_response_code(403);
     $page_title = 'Access denied';
     $theme = 'staff';
+
+    // Send the viewer back to the page that makes sense for their own role.
+    $role_home = [
+        'owner' => ['/analytics/dashboard.php', 'Go to dashboard'],
+        'staff' => ['/staff/sales.php', 'Record a sale'],
+    ];
+    [$home_path, $home_label] = $role_home[(string) ($_SESSION['user_role'] ?? '')]
+        ?? ['/index.php', 'Return home'];
+
     require __DIR__ . '/header.php';
     echo '<main class="app-page-shell"><section class="app-empty-state">';
     echo '<p class="eyebrow">403</p><h1>Access denied</h1>';
     echo '<p>You do not have permission to view this page.</p>';
-    echo '<a class="primary-button app-return-link" href="' . e(BASE_URL) . '/index.php">Return home</a>';
+    echo '<a class="primary-button app-return-link" href="' . e(BASE_URL) . e($home_path) . '">'
+        . e($home_label) . '</a>';
     echo '</section></main>';
     require __DIR__ . '/footer.php';
     exit;
