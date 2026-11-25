@@ -1,5 +1,6 @@
 /* CONTENTS: 01 Tokens, 02 Base, 03 Buttons, 04 Forms, 05 Alerts, 06 Tables,
-07 Cards, 08 Layout, 09 Auth, 10 Owner pages, 11 Sales, 12 Identity pages */
+07 Cards, 08 Layout, 09 Auth, 10 Owner pages, 11 Sales, 12 Identity pages,
+13 Error pages */
 /* Application-only additions. Prototype selectors and variables are intentionally untouched. */
 .app-header-inner {
   align-items: center;
@@ -2381,5 +2382,54 @@ html {
 
   .app-id-flow-card {
     padding: var(--app-space-4);
+  }
+}
+
+/* ===== 13 ERROR PAGES ===== */
+/* The protected 403 view centers its existing empty-state shell. */
+.app-page-shell .app-empty-state {
+  margin: 0 auto;
+  max-width: 560px;
+  text-align: center;
+}
+
+/* The protected 403 view keeps its existing return action easy to reach. */
+.app-return-link {
+  margin-top: var(--app-space-3);
+  min-height: 44px;
+}
+
+/* 375px: let the protected 403 return action fill the available width. */
+@media (max-width: 375px) {
+  .app-return-link {
+    width: 100%;
+  }
+}
+
+/* The shared Home page keeps its welcome content comfortably grouped. */
+.app-home-page {
+  align-content: center;
+  display: grid;
+  gap: var(--app-space-3);
+}
+
+/* The shared Home page keeps role-appropriate actions aligned to the reading edge. */
+.app-home-page .app-home-sale-button,
+.app-home-page .app-home-dashboard-button {
+  justify-self: start;
+  min-height: 44px;
+}
+
+/* overrides app.css .app-home-dashboard-button at line 425 for Home grid spacing. */
+.app-home-dashboard-button {
+  margin-top: 0;
+}
+
+/* 375px: make shared Home actions span the compact page width. */
+@media (max-width: 375px) {
+  .app-home-page .app-home-sale-button,
+  .app-home-page .app-home-dashboard-button {
+    justify-self: stretch;
+    width: 100%;
   }
 }
