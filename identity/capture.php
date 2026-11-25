@@ -24,8 +24,16 @@ $debug = isset($_GET['debug']) && $_GET['debug'] === '1';
 $page_title = 'Face capture';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-id-page">
-    <section class="app-id-card">
+<main class="app-id-page app-id-flow-page">
+    <ol class="app-id-steps" aria-label="Identity verification steps">
+        <li class="app-id-step">Upload ID</li>
+        <li class="app-id-step">Scan ID</li>
+        <li class="app-id-step" aria-current="step">Face capture</li>
+        <li class="app-id-step">Face match</li>
+        <li class="app-id-step">Your details</li>
+        <li class="app-id-step">Result</li>
+    </ol>
+    <section class="app-id-card app-id-flow-card">
         <div><p class="eyebrow">Identity verification</p><h1>Face capture<span>.</span></h1></div>
         <?php if ($lockedOut): ?>
             <p class="app-id-warning">You have reached today’s verification attempt limit. Please try again tomorrow.</p>

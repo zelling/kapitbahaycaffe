@@ -43,16 +43,24 @@ unset($_SESSION['identity_error']);
 $page_title = 'Identity verification';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-id-page">
-    <section class="app-id-card">
+<main class="app-id-page app-id-flow-page">
+    <ol class="app-id-steps" aria-label="Identity verification steps">
+        <li class="app-id-step" aria-current="step">Upload ID</li>
+        <li class="app-id-step">Scan ID</li>
+        <li class="app-id-step">Face capture</li>
+        <li class="app-id-step">Face match</li>
+        <li class="app-id-step">Your details</li>
+        <li class="app-id-step">Result</li>
+    </ol>
+    <section class="app-id-card app-id-flow-card">
         <div>
             <p class="eyebrow">Owner account</p>
             <h1>Identity verification<span>.</span></h1>
         </div>
         <?php if ($lockedOut): ?>
-            <p class="app-id-warning">You have reached today’s verification attempt limit. Please try again tomorrow.</p>
+            <p class="app-id-warning" role="alert">You have reached today’s verification attempt limit. Please try again tomorrow.</p>
         <?php else: ?>
-            <?php if ($error !== ''): ?><p class="app-id-warning"><?= e($error) ?></p><?php endif; ?>
+            <?php if ($error !== ''): ?><p class="app-id-warning" role="alert"><?= e($error) ?></p><?php endif; ?>
             <p>To protect owner access, you will choose an ID type, upload an image, review a limited scan result, and continue to the next check.</p>
             <div>
                 <h2>Supported ID types</h2>
@@ -68,10 +76,10 @@ require __DIR__ . '/../includes/header.php';
             <form method="post" class="app-id-form">
                 <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                 <label class="app-id-check"><input type="checkbox" name="consent" value="1" required> I understand and consent to this identity verification process.</label>
-                <div class="app-id-actions"><button class="primary-button" type="submit">I consent and continue</button></div>
+                <div class="app-id-actions"><button class="primary-button app-btn-primary" type="submit">I consent and continue</button></div>
             </form>
         <?php endif; ?>
-        <p><a class="app-cancel-link" href="<?= e(BASE_URL) ?>/identity/limitations.php">Read identity verification limitations</a></p>
+        <p><a class="app-cancel-link app-btn-secondary" href="<?= e(BASE_URL) ?>/identity/limitations.php">Read identity verification limitations</a></p>
     </section>
 </main>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

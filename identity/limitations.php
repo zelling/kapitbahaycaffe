@@ -8,8 +8,16 @@ identity_cleanup_stale();
 $page_title = 'Identity verification limitations';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-id-page">
-    <section class="app-id-card">
+<main class="app-id-page app-id-flow-page">
+    <ol class="app-id-steps" aria-label="Identity verification steps">
+        <li class="app-id-step">Upload ID</li>
+        <li class="app-id-step">Scan ID</li>
+        <li class="app-id-step">Face capture</li>
+        <li class="app-id-step">Face match</li>
+        <li class="app-id-step">Your details</li>
+        <li class="app-id-step">Result</li>
+    </ol>
+    <section class="app-id-card app-id-flow-card">
         <div><p class="eyebrow">Identity verification</p><h1>Limitations<span>.</span></h1></div>
         <p>This check helps document an owner verification, but it cannot establish identity with certainty.</p>
         <ul>
@@ -33,7 +41,7 @@ require __DIR__ . '/../includes/header.php';
             </ul>
             <p>Only the driver’s license layout has been tested.</p>
         </div>
-        <div class="app-id-actions"><a class="app-cancel-link" href="<?= e(BASE_URL) ?>/identity/start.php">Return to identity verification</a></div>
+        <div class="app-id-actions"><a class="app-cancel-link app-btn-secondary" href="<?= e(BASE_URL) ?>/identity/start.php">Return to identity verification</a></div>
     </section>
 </main>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

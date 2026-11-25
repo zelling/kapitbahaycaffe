@@ -104,13 +104,21 @@ unset($_SESSION['identity_error']);
 $page_title = 'Upload ID';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-id-page">
-    <section class="app-id-card">
+<main class="app-id-page app-id-flow-page">
+    <ol class="app-id-steps" aria-label="Identity verification steps">
+        <li class="app-id-step" aria-current="step">Upload ID</li>
+        <li class="app-id-step">Scan ID</li>
+        <li class="app-id-step">Face capture</li>
+        <li class="app-id-step">Face match</li>
+        <li class="app-id-step">Your details</li>
+        <li class="app-id-step">Result</li>
+    </ol>
+    <section class="app-id-card app-id-flow-card">
         <div><p class="eyebrow">Identity verification</p><h1>Upload your ID<span>.</span></h1></div>
         <?php if ($lockedOut): ?>
-            <p class="app-id-warning">You have reached today’s verification attempt limit. Please try again tomorrow.</p>
+            <p class="app-id-warning" role="alert">You have reached today’s verification attempt limit. Please try again tomorrow.</p>
         <?php else: ?>
-            <?php if ($error !== ''): ?><p class="app-id-warning"><?= e($error) ?></p><?php endif; ?>
+            <?php if ($error !== ''): ?><p class="app-id-warning" role="alert"><?= e($error) ?></p><?php endif; ?>
             <p>Choose a clear JPEG or PNG image. The file must be 5 MB or smaller.</p>
             <form method="post" enctype="multipart/form-data" class="app-id-form">
                 <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
@@ -124,7 +132,7 @@ require __DIR__ . '/../includes/header.php';
                     </select>
                 </label>
                 <label class="app-field">ID image<input type="file" name="id_image" accept="image/jpeg,image/png" required></label>
-                <div class="app-id-actions"><button class="primary-button" type="submit">Scan ID</button></div>
+                <div class="app-id-actions"><button class="primary-button app-btn-primary" type="submit">Scan ID</button></div>
             </form>
         <?php endif; ?>
     </section>

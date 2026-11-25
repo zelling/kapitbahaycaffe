@@ -1,5 +1,5 @@
 /* CONTENTS: 01 Tokens, 02 Base, 03 Buttons, 04 Forms, 05 Alerts, 06 Tables,
-07 Cards, 08 Layout, 09 Auth, 10 Owner pages, 11 Sales */
+07 Cards, 08 Layout, 09 Auth, 10 Owner pages, 11 Sales, 12 Identity pages */
 /* Application-only additions. Prototype selectors and variables are intentionally untouched. */
 .app-header-inner {
   align-items: center;
@@ -2287,5 +2287,99 @@ html {
   .app-sale-remove,
   .app-record-sale-button {
     min-height: 44px;
+  }
+}
+
+/* ===== 12 IDENTITY PAGES ===== */
+/* Identity pages use a centered reading width without changing camera dimensions. */
+.app-id-flow-page {
+  margin: 0 auto;
+  max-width: 640px;
+  padding: var(--app-space-6) var(--app-space-4) var(--app-space-6);
+}
+
+/* Identity pages show the static verification path before each card. */
+.app-id-steps {
+  display: grid;
+  gap: var(--app-space-2);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  list-style: none;
+  margin: 0 0 var(--app-space-4);
+  padding: 0;
+}
+
+/* Identity pages keep each verification step compact and readable. */
+.app-id-step {
+  align-items: center;
+  border: 1px solid var(--app-color-line);
+  border-radius: var(--app-radius-control);
+  color: var(--app-color-muted);
+  display: flex;
+  font-size: 10px;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1.25;
+  min-height: 38px;
+  padding: var(--app-space-2);
+  text-align: center;
+}
+
+/* Identity pages identify the current verification step without color alone. */
+.app-id-step[aria-current="step"] {
+  background: var(--app-color-ink);
+  border-color: var(--app-color-ink);
+  color: var(--app-color-paper);
+}
+
+/* 768px: let identity steps use a balanced three-column reading layout. */
+@media (max-width: 768px) {
+  .app-id-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* 375px: retain touch-sized identity steps on compact phones. */
+@media (max-width: 375px) {
+  .app-id-step {
+    min-height: 44px;
+  }
+}
+
+/* overrides app.css .app-id-card at line 983 with the shared card shadow. */
+.app-id-card {
+  box-shadow: var(--app-shadow-card);
+}
+
+/* Identity pages group their heading, message, and action content in one card. */
+.app-id-flow-card {
+  display: grid;
+  gap: var(--app-space-4);
+}
+
+/* Identity page headings use compact line spacing within the shared card. */
+.app-id-flow-card h1 {
+  line-height: 1.1;
+}
+
+/* Identity forms preserve visible actions with the shared button hierarchy. */
+.app-id-actions .app-btn-primary,
+.app-id-actions .app-btn-secondary {
+  min-height: 44px;
+}
+
+/* Identity result messages align with the card rhythm across success and error states. */
+.app-id-status {
+  margin: 0;
+}
+
+/* 375px: keep identity cards within the viewport without changing camera content. */
+@media (max-width: 375px) {
+  .app-id-flow-page {
+    padding-left: var(--app-space-3);
+    padding-right: var(--app-space-3);
+  }
+
+  .app-id-flow-card {
+    padding: var(--app-space-4);
   }
 }

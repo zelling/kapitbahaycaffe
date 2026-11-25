@@ -96,28 +96,36 @@ $age = identity_age($values['date_of_birth']);
 $page_title = 'Personal information';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-id-page">
-    <section class="app-id-card">
+<main class="app-id-page app-id-flow-page">
+    <ol class="app-id-steps" aria-label="Identity verification steps">
+        <li class="app-id-step">Upload ID</li>
+        <li class="app-id-step">Scan ID</li>
+        <li class="app-id-step">Face capture</li>
+        <li class="app-id-step">Face match</li>
+        <li class="app-id-step" aria-current="step">Your details</li>
+        <li class="app-id-step">Result</li>
+    </ol>
+    <section class="app-id-card app-id-flow-card">
         <div><p class="eyebrow">Identity verification</p><h1>Personal information<span>.</span></h1></div>
         <p>Review and correct the scanned details before saving your verification record. Your age is recalculated after you submit.</p>
-        <?php if ($formError !== ''): ?><p class="app-id-warning"><?= e($formError) ?></p><?php endif; ?>
+        <?php if ($formError !== ''): ?><p class="app-id-warning" role="alert"><?= e($formError) ?></p><?php endif; ?>
         <form method="post" class="app-id-form">
             <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="action" value="submit">
             <div class="app-id-form-fields">
                 <label class="app-id-form-field">Full name<input type="text" name="full_name" maxlength="150" value="<?= e($values['full_name']) ?>" required></label>
-                <?php if (isset($errors['full_name'])): ?><p class="app-id-field-error"><?= e($errors['full_name']) ?></p><?php endif; ?>
+                <?php if (isset($errors['full_name'])): ?><p class="app-id-field-error" role="alert"><?= e($errors['full_name']) ?></p><?php endif; ?>
                 <label class="app-id-form-field">Date of birth<input type="date" name="date_of_birth" value="<?= e($values['date_of_birth']) ?>" required></label>
-                <?php if (isset($errors['date_of_birth'])): ?><p class="app-id-field-error"><?= e($errors['date_of_birth']) ?></p><?php endif; ?>
+                <?php if (isset($errors['date_of_birth'])): ?><p class="app-id-field-error" role="alert"><?= e($errors['date_of_birth']) ?></p><?php endif; ?>
                 <label class="app-id-form-field">Age<span><?= $age === null ? 'Will be calculated after a valid date is entered.' : e((string) $age) ?></span></label>
                 <label class="app-id-form-field">Address (optional)<textarea name="address" maxlength="255"><?= e($values['address']) ?></textarea></label>
                 <label class="app-id-form-field">ID number<input type="text" name="id_number" maxlength="30" value="<?= e($values['id_number']) ?>" required></label>
-                <?php if (isset($errors['id_number'])): ?><p class="app-id-field-error"><?= e($errors['id_number']) ?></p><?php endif; ?>
+                <?php if (isset($errors['id_number'])): ?><p class="app-id-field-error" role="alert"><?= e($errors['id_number']) ?></p><?php endif; ?>
                 <label class="app-id-form-field">ID type<span><?= e((string) ($scanData['id_type'] ?? 'Not available')) ?></span></label>
             </div>
             <label class="app-id-check"><input type="checkbox" name="consent" value="1"<?= isset($_POST['consent']) ? ' checked' : '' ?> required> I confirm the details above are correct and I consent to this verification record being saved.</label>
-            <?php if (isset($errors['consent'])): ?><p class="app-id-field-error"><?= e($errors['consent']) ?></p><?php endif; ?>
-            <div class="app-id-actions"><button class="primary-button" type="submit">Save verification record</button></div>
+            <?php if (isset($errors['consent'])): ?><p class="app-id-field-error" role="alert"><?= e($errors['consent']) ?></p><?php endif; ?>
+            <div class="app-id-actions"><button class="primary-button app-btn-primary" type="submit">Save verification record</button></div>
         </form>
     </section>
 </main>

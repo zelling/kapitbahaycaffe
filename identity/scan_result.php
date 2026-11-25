@@ -43,11 +43,19 @@ $fieldNames = [
 $page_title = 'ID scan result';
 require __DIR__ . '/../includes/header.php';
 ?>
-<main class="app-id-page">
-    <section class="app-id-card">
+<main class="app-id-page app-id-flow-page">
+    <ol class="app-id-steps" aria-label="Identity verification steps">
+        <li class="app-id-step">Upload ID</li>
+        <li class="app-id-step" aria-current="step">Scan ID</li>
+        <li class="app-id-step">Face capture</li>
+        <li class="app-id-step">Face match</li>
+        <li class="app-id-step">Your details</li>
+        <li class="app-id-step">Result</li>
+    </ol>
+    <section class="app-id-card app-id-flow-card">
         <div><p class="eyebrow">Identity verification</p><h1>ID scan result<span>.</span></h1></div>
         <?php if ($lockedOut): ?>
-            <p class="app-id-warning">You have reached today’s verification attempt limit. Please try again tomorrow.</p>
+            <p class="app-id-warning" role="alert">You have reached today’s verification attempt limit. Please try again tomorrow.</p>
         <?php else: ?>
             <dl class="app-id-details">
                 <div><dt>Status</dt><dd><?= ($scanData['scanned'] ?? false) === true ? 'Scanned' : 'Not scanned' ?></dd></div>
@@ -58,11 +66,11 @@ require __DIR__ . '/../includes/header.php';
                 <p>Missing fields: <?= e(implode(', ', array_map(static fn (string $field): string => $fieldNames[$field] ?? 'required field', $missingFields))) ?>.</p>
             <?php endif; ?>
             <?php if ($passed): ?>
-                <p class="app-id-notice">Your ID scan passed. You can continue to the next verification step.</p>
-                <div class="app-id-actions"><a class="primary-button" href="<?= e(BASE_URL) ?>/identity/capture.php">Continue</a></div>
+                <p class="app-id-notice" role="status">Your ID scan passed. You can continue to the next verification step.</p>
+                <div class="app-id-actions"><a class="primary-button app-btn-primary" href="<?= e(BASE_URL) ?>/identity/capture.php">Continue</a></div>
             <?php else: ?>
-                <p class="app-id-warning"><?= e($message) ?></p>
-                <div class="app-id-actions"><a class="app-cancel-link" href="<?= e(BASE_URL) ?>/identity/upload.php">Retry upload</a></div>
+                <p class="app-id-warning" role="alert"><?= e($message) ?></p>
+                <div class="app-id-actions"><a class="app-cancel-link app-btn-secondary" href="<?= e(BASE_URL) ?>/identity/upload.php">Retry upload</a></div>
             <?php endif; ?>
         <?php endif; ?>
     </section>
